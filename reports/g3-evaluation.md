@@ -93,9 +93,9 @@ Kiểm nghiệm một trường hợp xếp hạng mẫu Top-5 với vector nhã
 
 ---
 
-## 5. Mức Độ Hoàn Thành Nhãn & Cơ Chế Verified-Label Gate
+## 5. Mức Độ Hoàn Thành Nhãn, Cổng Verified-Label Gate & Cơ Chế Official Evaluation
 
-Thống kê độ phủ kiểm duyệt hiện tại trên 105 cặp ứng viên:
+Thống kê độ phủ kiểm duyệt hiện tại trên 105 cặp ứng viên trong `data/eval/review_pool.csv`:
 - **Số cặp đã kiểm duyệt (Verified):** **0 / 105 (0.0%)**
 - **Số cặp đang chờ kiểm duyệt (Pending):** **105 / 105 (100.0%)**
 - **Phân bố nhãn dự thảo trong pool:**
@@ -104,21 +104,58 @@ Thống kê độ phủ kiểm duyệt hiện tại trên 105 cặp ứng viên:
   - Nhãn đề xuất 0: 4 cặp
   - Ứng viên mới chưa có nhãn dự thảo (unjudged): 69 cặp
 
-### Kiểm chứng Cổng Verified-Label Gate:
-Khi thực thi lệnh đánh giá chính thức `python scripts/run_evaluation.py --official`:
-```text
-[VERIFIED-LABEL GATE REFUSAL] Official benchmark evaluation locked!
-  Found 105 unverified / pending candidate pairs in 'data/eval/review_pool.csv'.
-  To prevent reporting uncertified AI draft labels as official scientific ground truth,
-  aggregate official metrics (Hit@K, MRR@K, nDCG@K) can only be generated when human
-  reviewers have audited the candidates and set review_status='verified'.
-  Run without '--official' to preview rankings, disagreements, and pool coverage.
-```
-$\rightarrow$ Lệnh kết thúc với **exit code `1`**. Cổng kiểm duyệt hoạt động chính xác theo đúng nguyên tắc khoa học.
+### 5.1 Phân biệt hai chế độ thực thi:
+1. **Chế độ Xem trước (Preview Mode — mặc định không có cờ `--official`):**
+   - Chạy bình thường ngay cả khi 100% nhãn đang ở trạng thái `pending`.
+   - Xuất bảng so sánh thứ hạng Top-1 giữa Chroma và BM25, phân tích định tính câu hỏi unanswerable `q_030`.
+   - Xuất artifact tái lập tại `results/g3/rankings_preview.json`.
+2. **Chế độ Đánh giá Chính thức (Official Benchmark Mode — kích hoạt với cờ `--official`):**
+   - Thực thi cơ chế kiểm duyệt nghiêm ngặt (Verified-Label Gate).
+   - Yêu cầu cấu hình chuẩn hóa đúng `--top-k 5`.
+   - Kiểm tra toàn bộ 12 test queries và mọi tài liệu Top-5 của cả hai phương pháp đều phải có mặt trong review pool với `review_status='verified'` và `verified_relevance` thuộc `{0, 1, 2}`.
+   - Tuyệt đối không coi các tài liệu unjudged là điểm 0.
+   - Nếu còn bất kỳ nhãn nào pending/missing: **từ chối tính toán**, không tạo hoặc ghi đè file `official_metrics.json`, và thoát với **exit code `1`**.
+   - Khi toàn bộ nhãn đã được thẩm định đầy đủ: tính toán per-query metrics (Hit@5, MRR@5, nDCG@5), tính macro-average trên đúng 11 câu hỏi answerable (loại trừ `q_030`), và xuất kết quả chính thức tại `results/g3/official_metrics.json`.
 
 ---
 
-## 6. Đối Sánh Thứ Hạng Xếp Hạng Xem Trước (Preview Rankings)
+## 6. Kết Quả 4 Kiểm Chứng Tối Thiểu (Minimal Verification)
+
+### Check 1 — Metrics Correctness (Fixture Test): PASS
+```powershell
+python scripts/run_evaluation.py --fixture-test
+```
+- Vector Top-5 $retrieved = [1, 0, 2, 0, 1]$, $pool = [2, 2, 1, 1, 0, 0]$.
+- Tính toán thực tế: $Hit@5 = 1.0$, $MRR@5 = 0.3333$, $DCG@5 = 2.8869$, $IDCG@5 = 5.8235$, $nDCG@5 = 0.4957$.
+- Kết quả: Khớp chính xác với giá trị tính tay lý thuyết. **PASS**.
+
+### Check 2 — Gate Refusal trên Review Pool Thật (105 Nhãn Pending): PASS
+```powershell
+python scripts/run_evaluation.py --official
+```
+- Hệ thống phát hiện 105 nhãn chưa được duyệt trong `data/eval/review_pool.csv`.
+- Báo lỗi rõ ràng: `[VERIFIED-LABEL GATE REFUSAL] Official benchmark evaluation locked! Total gate violations found: 105`.
+- Thoát với **exit code `1`** (`$LASTEXITCODE` = 1). Không tạo file official giả mạo. **PASS**.
+
+### Check 3 — Kiểm chứng Nhánh Official-Success với Synthetic Verified CSV: PASS
+Thực hiện trong thư mục tạm cô lập (sử dụng tệp CSV kiểm thử được đánh dấu rõ là *test-only*, không sửa đổi hay commit vào dữ liệu thật):
+- Gán nhãn verified giả định cho toàn bộ 105 cặp ứng viên và chạy `run_evaluation.py --official`.
+- Kết quả: Cổng gate mở thành công (**exit code `0`**).
+- Tạo thành công tệp `official_metrics.json` chứa đầy đủ:
+  - Per-query metrics (Hit@5, MRR@5, nDCG@5) cho cả Chroma và BM25.
+  - Macro-average được tính toán chính xác trên **đúng 11 câu hỏi answerable** (loại trừ `q_030`).
+  - Ghi nhận đầy đủ thông tin metadata, corpus SHA-256, dependencies và ghi chú giới hạn pooled judgments. **PASS**.
+
+### Check 4 — Gate Refusal khi Thiếu Nhãn / Cặp Ứng Viên: PASS
+Thực hiện trong thư mục tạm:
+- Chuyển 1 nhãn bất kỳ trong tệp CSV kiểm thử về trạng thái `pending` và để trống relevance.
+- Chạy `run_evaluation.py --official`.
+- Kết quả: Gate ngay lập tức phát hiện vi phạm, từ chối tính toán, không xuất file `official_metrics.json`, và thoát với **exit code `1`**.
+- Thử nghiệm với `--top-k 3`: Gate từ chối với thông báo `Official evaluation is strictly standardized at top_k=5. Received top_k=3` (**exit code `1`**). **PASS**.
+
+---
+
+## 7. Đối Sánh Thứ Hạng Xếp Hạng Xem Trước (Preview Rankings)
 
 Chạy xem trước với `python scripts/run_evaluation.py` ghi nhận bảng so sánh Top-1 giữa Chroma và BM25 trên 12 queries:
 
@@ -143,7 +180,7 @@ Chạy xem trước với `python scripts/run_evaluation.py` ghi nhận bảng s
 
 ---
 
-## 7. Phân Tích Định Tính Câu Hỏi Unanswerable (`q_030`)
+## 8. Phân Tích Định Tính Câu Hỏi Unanswerable (`q_030`)
 
 - **Nội dung câu hỏi:** `"thuật toán đồng thuận Proof of Stake và xử lý phân nhánh blockchain Ethereum"`
 - **Kết quả tìm kiếm:**
@@ -156,7 +193,7 @@ Chạy xem trước với `python scripts/run_evaluation.py` ghi nhận bảng s
 
 ---
 
-## 8. Các Giới Hạn Cần Lưu Ý
+## 9. Các Giới Hạn Cần Lưu Ý
 
 1. **Nhãn đang ở trạng thái Pending:** Toàn bộ 105 cặp ứng viên hiện đang chờ người kiểm duyệt mở tệp `data/eval/review_pool.csv` để đối soát và điền nhãn. Chưa có bảng xếp hạng hay điểm số chính thức nào được công bố tại G3.
 2. **Đánh giá dựa trên Candidate Pool (Pooled Judgments):** Điểm $IDCG@5$ được tính toán trên các ứng viên có mặt trong pool kiểm duyệt. Điều này phản ánh tính tương đối của pool, chưa bảo đảm bao quát 100% mọi đoạn văn liên quan tiềm năng trong toàn bộ corpus.

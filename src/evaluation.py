@@ -137,6 +137,75 @@ class ReviewPoolGate:
             return int(val)
         return None
 
+    def get_all_verified_relevances_for_query(self, query_id: str) -> List[int]:
+        """Returns all verified relevance scores for candidates of query_id in the pool."""
+        query_pool = self.pool_by_query.get(query_id, {})
+        relevances: List[int] = []
+        for did, row in query_pool.items():
+            if row.get("review_status", "").strip().lower() == "verified":
+                val = row.get("verified_relevance", "").strip()
+                if val in {"0", "1", "2"}:
+                    relevances.append(int(val))
+        return relevances
+
+    def validate_gate(
+        self,
+        subset_query_ids: List[str],
+        retrieved_rankings: Dict[str, Dict[str, List[str]]],
+        top_k: int = 5,
+    ) -> Tuple[bool, List[str]]:
+        """
+        Validates all conditions for official evaluation:
+        1. top_k == 5
+        2. All subset query IDs are present in pool
+        3. No duplicate (query_id, doc_id) pairs
+        4. All retrieved docs in Chroma and BM25 are present in pool
+        5. All candidates in pool for subset queries have review_status='verified' and verified_relevance in {0, 1, 2}
+        """
+        errors: List[str] = []
+
+        if top_k != 5:
+            errors.append(f"Official evaluation is strictly standardized at top_k=5. Received top_k={top_k}.")
+
+        # Check duplicate pairs
+        seen_pairs: Set[Tuple[str, str]] = set()
+        for r in self.rows:
+            pair = (r["query_id"], r["doc_id"])
+            if pair in seen_pairs:
+                errors.append(f"Duplicate (query_id, doc_id) pair found in review pool: {pair}")
+            seen_pairs.add(pair)
+
+        # Check subset queries in pool
+        for qid in subset_query_ids:
+            if qid not in self.pool_by_query:
+                errors.append(f"Query '{qid}' from evaluation subset is missing from review pool.")
+
+        # Check retrieved docs and pool candidate verification
+        for qid in subset_query_ids:
+            q_pool = self.pool_by_query.get(qid, {})
+            ranks = retrieved_rankings.get(qid, {})
+            chroma_top = ranks.get("chroma", [])
+            bm25_top = ranks.get("bm25", [])
+
+            # Check retrieved docs exist in pool
+            for did in chroma_top:
+                if did not in q_pool:
+                    errors.append(f"Query '{qid}': Chroma Top-5 doc '{did}' is missing from review pool.")
+            for did in bm25_top:
+                if did not in q_pool:
+                    errors.append(f"Query '{qid}': BM25 Top-5 doc '{did}' is missing from review pool.")
+
+            # Check all candidates for this query have verified relevance
+            for did, row in q_pool.items():
+                status = row.get("review_status", "").strip().lower()
+                rel = row.get("verified_relevance", "").strip()
+                if status != "verified" or rel not in {"0", "1", "2"}:
+                    errors.append(
+                        f"Query '{qid}', Doc '{did}': Not verified (status='{status}', verified_relevance='{rel}')."
+                    )
+
+        return len(errors) == 0, errors
+
     def get_coverage_statistics(self, query_ids: Optional[List[str]] = None) -> Dict[str, Any]:
         """Calculates verification coverage across the requested queries."""
         target_rows = self.rows
