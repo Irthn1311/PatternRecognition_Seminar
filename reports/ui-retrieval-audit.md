@@ -67,7 +67,7 @@ Trong script chẩn đoán `scripts/diagnose_q001.py`, nhóm nghiên cứu phân
 
 **Kết quả đối chiếu:**
 - Trên tập học liệu 114 tài liệu, Top-5 của Chroma HNSW (`cv_009`, `cv_014`, `cv_018`, `cv_008`, `ml_009`) **trùng khớp 100% về cả thứ tự lẫn khoảng cách** so với tính toán cosine chính xác vét cạn trong RAM.
-- Điều này chứng minh rằng: **Chroma HNSW không hề gặp hiện tượng sai số xấp xỉ hay thất lạc láng giềng gần nhất** trên quy mô này. Việc `cv_009` đứng trên `cv_010`/`cv_011` hoàn toàn là do hình học không gian vector của mô hình `intfloat/multilingual-e5-small`.
+- Điều này cho thấy: **Top-5 agreement / Recall@5 giữa Chroma HNSW và phép tính cosine chính xác đạt 100% chỉ trên truy vấn q_001 được kiểm tra** trong tập dữ liệu 114 đoạn này, không phải là sự bảo đảm phổ quát chung của thuật toán HNSW trong mọi điều kiện dữ liệu quy mô lớn. Việc `cv_009` đứng trên `cv_010`/`cv_011` trên `q_001` phản ánh phân bố hình học không gian vector của mô hình `intfloat/multilingual-e5-small`.
 
 ### 2.3 Phân tích nguyên nhân ngữ nghĩa & từ vựng
 1. **Độ bão hòa từ vựng (BM25):** Đoạn văn `cv_009` chứa mật độ từ trùng khớp cao nhất với câu hỏi: *"bức ảnh"*, *"ảnh"*, *"thị giác máy tính"*, *"máy tính"*, *"một"*, *"các"*, *"của"*, *"để"*, *"và"* (8/17 tokens trùng khớp). Trong khi đó, đoạn `cv_010` thậm chí không chứa từ *"ảnh"* hay *"bức ảnh"* trong phần thân văn bản.
