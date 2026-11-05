@@ -128,7 +128,7 @@ def add_mutable_document(
     topic: str,
     text: str,
 ) -> None:
-    """Encodes with 'passage: ' and upserts into mutable demo collection."""
+    """Encodes with 'passage: ' and adds into mutable demo collection. Refuses existing IDs."""
     doc_id_clean = doc_id.strip()
     text_clean = text.strip()
     title_clean = title.strip() or "Untitled"
@@ -138,6 +138,13 @@ def add_mutable_document(
         raise ValueError("Document ID cannot be empty.")
     if not text_clean:
         raise ValueError("Document text cannot be empty.")
+
+    # Refuse if ID already exists to prevent silent overwrite
+    existing = collection.get(ids=[doc_id_clean])
+    if existing and existing.get("ids"):
+        raise ValueError(
+            f"Document ID '{doc_id_clean}' already exists in demo collection. Use Update operation to edit it."
+        )
 
     prefixed = f"passage: {text_clean}"
     emb = model.encode(prefixed, normalize_embeddings=True, show_progress_bar=False)
@@ -158,8 +165,33 @@ def update_mutable_document(
     topic: str,
     text: str,
 ) -> None:
-    """Re-encodes with 'passage: ' and updates document and metadata."""
-    add_mutable_document(collection, model, doc_id, title, topic, text)
+    """Re-encodes with 'passage: ' and updates an existing document in mutable demo collection."""
+    doc_id_clean = doc_id.strip()
+    text_clean = text.strip()
+    title_clean = title.strip() or "Untitled"
+    topic_clean = topic.strip() or "General"
+
+    if not doc_id_clean:
+        raise ValueError("Document ID cannot be empty.")
+    if not text_clean:
+        raise ValueError("Document text cannot be empty.")
+
+    # Verify ID exists before updating
+    existing = collection.get(ids=[doc_id_clean])
+    if not existing or not existing.get("ids"):
+        raise ValueError(
+            f"Document ID '{doc_id_clean}' not found in demo collection. Use Add operation to create it."
+        )
+
+    prefixed = f"passage: {text_clean}"
+    emb = model.encode(prefixed, normalize_embeddings=True, show_progress_bar=False)
+
+    collection.upsert(
+        ids=[doc_id_clean],
+        embeddings=[emb.tolist()],
+        documents=[text_clean],
+        metadatas=[{"title": title_clean, "topic": topic_clean}],
+    )
 
 
 def delete_mutable_document(collection: Collection, doc_id: str) -> None:
@@ -224,16 +256,23 @@ def check_official_benchmark_eligibility(
     """
     Validates if official metrics are eligible to be displayed.
     Requirements:
-      1. official_metrics.json exists.
-      2. Corpus SHA-256 matches current corpus file.
-      3. Review pool has 100% verified labels (0 pending).
+      1. Corpus file exists.
+      2. Review pool exists, is non-empty, and has 100% verified labels (0 pending).
+      3. official_metrics.json exists.
+      4. Corpus SHA-256 matches the recorded corpus_sha256 in official JSON.
+      5. Review pool SHA-256 matches the recorded review_pool_sha256 in official JSON.
     Returns (is_eligible, reason, official_data).
     """
+    # 1. Guard against missing corpus file
+    c_path = Path(corpus_path)
+    if not c_path.exists():
+        return False, f"Corpus data file '{corpus_path}' does not exist.", None
+
+    # 2. Guard against missing or empty review pool
     pool_file = Path(review_pool_path)
     if not pool_file.exists():
-        return False, f"Review pool file '{review_pool_path}' not found.", None
+        return False, f"Review pool file '{review_pool_path}' does not exist.", None
 
-    # Check review pool coverage
     pending_count = 0
     total_count = 0
     with open(pool_file, "r", encoding="utf-8-sig") as f:
@@ -245,6 +284,9 @@ def check_official_benchmark_eligibility(
             if status != "verified" or rel not in {"0", "1", "2"}:
                 pending_count += 1
 
+    if total_count == 0:
+        return False, f"Review pool file '{review_pool_path}' is empty.", None
+
     if pending_count > 0:
         return (
             False,
@@ -252,7 +294,7 @@ def check_official_benchmark_eligibility(
             None,
         )
 
-    # Check official json file existence
+    # 3. Guard against missing official metrics file
     json_file = Path(official_json_path)
     if not json_file.exists():
         return (
@@ -267,16 +309,25 @@ def check_official_benchmark_eligibility(
     except Exception as e:
         return False, f"Failed to parse '{official_json_path}': {e}", None
 
-    # Check corpus hash consistency
-    if Path(corpus_path).exists():
-        current_sha = compute_file_sha256(corpus_path)
-        recorded_sha = official_data.get("metadata", {}).get("corpus_sha256", "")
-        if current_sha != recorded_sha:
-            return (
-                False,
-                f"Corpus SHA-256 mismatch: recorded {recorded_sha[:8]}, current file is {current_sha[:8]}.",
-                None,
-            )
+    # 4. Check corpus SHA-256 hash consistency
+    current_corpus_sha = compute_file_sha256(corpus_path)
+    recorded_corpus_sha = official_data.get("metadata", {}).get("corpus_sha256", "")
+    if current_corpus_sha != recorded_corpus_sha:
+        return (
+            False,
+            f"Corpus SHA-256 mismatch: recorded {recorded_corpus_sha[:8]}, current file is {current_corpus_sha[:8]}.",
+            None,
+        )
+
+    # 5. Check review pool SHA-256 hash consistency to prevent stale metrics when labels change
+    current_pool_sha = compute_file_sha256(review_pool_path)
+    recorded_pool_sha = official_data.get("metadata", {}).get("review_pool_sha256", "")
+    if not recorded_pool_sha or current_pool_sha != recorded_pool_sha:
+        return (
+            False,
+            "Review pool has been modified since official metrics were computed (SHA-256 mismatch). Please re-run 'python scripts/run_evaluation.py --official'.",
+            None,
+        )
 
     return True, "Official benchmark is verified and valid.", official_data
 

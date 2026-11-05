@@ -82,66 +82,80 @@ def run_acceptance_checks() -> None:
     print("Check 2 PASS: Metadata pre-filtering strictly enforced on both retrievers.")
 
     # -------------------------------------------------------------------------
-    # Check 3: Isolated Mutable Collection CRUD
+    # Check 3: Isolated Mutable Collection CRUD (Safe in Temporary DB)
     # -------------------------------------------------------------------------
     print("\n[Check 3: Isolated Mutable Collection CRUD]")
-    client = get_cached_chroma_client()
-    official_col = client.get_collection(DEFAULT_COLLECTION_NAME)
+    import tempfile
+    import chromadb
+
+    # Inspect real DB official collection in read-only mode before test
+    real_client = get_cached_chroma_client()
+    official_col = real_client.get_collection(DEFAULT_COLLECTION_NAME)
     initial_official_count = official_col.count()
     assert initial_official_count == 114, f"Expected 114 official records, got {initial_official_count}"
     print(f"  Official collection count before CRUD: {initial_official_count} (seminar_corpus_e5)")
 
-    demo_col = get_or_create_mutable_collection(client, DEFAULT_MUTABLE_COLLECTION)
-    model = get_cached_embedding_model()
+    # Record real demo collection IDs in real DB before test
+    real_demo_col = get_or_create_mutable_collection(real_client, DEFAULT_MUTABLE_COLLECTION)
+    real_demo_ids_before = set(d["id"] for d in list_mutable_documents(real_demo_col))
 
-    # Step A: Add
-    test_id = "demo_test_crud_01"
-    add_mutable_document(
-        demo_col,
-        model,
-        doc_id=test_id,
-        title="Học Tăng Cường Demo",
-        topic="Machine Learning",
-        text="Học tăng cường (Reinforcement Learning) là nhánh học máy tối ưu chính sách thông qua phần thưởng.",
-    )
-    docs_after_add = list_mutable_documents(demo_col)
-    assert any(d["id"] == test_id for d in docs_after_add), "Added document not found in demo collection"
-    print(f"  [CRUD Add] Added '{test_id}', demo collection count: {len(docs_after_add)}")
+    # Execute CRUD inside an isolated temporary directory to protect user's real demo data
+    with tempfile.TemporaryDirectory(prefix="chroma_demo_crud_test_", ignore_cleanup_errors=True) as tmp_dir:
+        tmp_client = chromadb.PersistentClient(path=str(Path(tmp_dir) / "test_chroma"))
+        test_demo_col = get_or_create_mutable_collection(tmp_client, "test_mutable_collection")
+        model = get_cached_embedding_model()
 
-    # Step B: Read & Search
-    search_res = search_mutable_collection(demo_col, model, "học tăng cường phần thưởng", top_k=1)
-    assert len(search_res) == 1, "Search on demo collection failed"
-    assert search_res[0]["id"] == test_id, f"Expected {test_id}, got {search_res[0]['id']}"
-    print(f"  [CRUD Search] Found '{search_res[0]['id']}' with cosine distance {search_res[0]['distance']:.4f}")
+        # Step A: Add
+        test_id = "demo_test_crud_01"
+        add_mutable_document(
+            test_demo_col,
+            model,
+            doc_id=test_id,
+            title="Học Tăng Cường Demo",
+            topic="Machine Learning",
+            text="Học tăng cường (Reinforcement Learning) là nhánh học máy tối ưu chính sách thông qua phần thưởng.",
+        )
+        docs_after_add = list_mutable_documents(test_demo_col)
+        assert any(d["id"] == test_id for d in docs_after_add), "Added document not found in demo collection"
+        print(f"  [CRUD Add] Added '{test_id}', isolated collection count: {len(docs_after_add)}")
 
-    # Step C: Update
-    updated_title = "Học Tăng Cường Nâng Cao"
-    updated_text = "Học tăng cường nâng cao với thuật toán Deep Q-Network và Policy Gradient."
-    update_mutable_document(
-        demo_col,
-        model,
-        doc_id=test_id,
-        title=updated_title,
-        topic="Machine Learning",
-        text=updated_text,
-    )
-    docs_after_update = list_mutable_documents(demo_col)
-    target_doc = next(d for d in docs_after_update if d["id"] == test_id)
-    assert target_doc["title"] == updated_title, "Title was not updated"
-    assert target_doc["text"] == updated_text, "Text was not updated"
-    print(f"  [CRUD Update] Updated '{test_id}', title is now: '{target_doc['title']}'")
+        # Step B: Read & Search
+        search_res = search_mutable_collection(test_demo_col, model, "học tăng cường phần thưởng", top_k=1)
+        assert len(search_res) == 1, "Search on demo collection failed"
+        assert search_res[0]["id"] == test_id, f"Expected {test_id}, got {search_res[0]['id']}"
+        print(f"  [CRUD Search] Found '{search_res[0]['id']}' with cosine distance {search_res[0]['distance']:.4f}")
 
-    # Step D: Delete
-    delete_mutable_document(demo_col, test_id)
-    docs_after_delete = list_mutable_documents(demo_col)
-    assert not any(d["id"] == test_id for d in docs_after_delete), "Deleted document still present in demo collection"
-    print(f"  [CRUD Delete] Deleted '{test_id}', demo collection count: {len(docs_after_delete)}")
+        # Step C: Update
+        updated_title = "Học Tăng Cường Nâng Cao"
+        updated_text = "Học tăng cường nâng cao với thuật toán Deep Q-Network và Policy Gradient."
+        update_mutable_document(
+            test_demo_col,
+            model,
+            doc_id=test_id,
+            title=updated_title,
+            topic="Machine Learning",
+            text=updated_text,
+        )
+        docs_after_update = list_mutable_documents(test_demo_col)
+        target_doc = next(d for d in docs_after_update if d["id"] == test_id)
+        assert target_doc["title"] == updated_title, "Title was not updated"
+        assert target_doc["text"] == updated_text, "Text was not updated"
+        print(f"  [CRUD Update] Updated '{test_id}', title is now: '{target_doc['title']}'")
 
-    # Verify official collection unchanged
+        # Step D: Delete
+        delete_mutable_document(test_demo_col, test_id)
+        docs_after_delete = list_mutable_documents(test_demo_col)
+        assert not any(d["id"] == test_id for d in docs_after_delete), "Deleted document still present in demo collection"
+        print(f"  [CRUD Delete] Deleted '{test_id}', isolated collection count: {len(docs_after_delete)}")
+
+    # Verify real DB demo collection and official collection remain completely untouched
+    real_demo_ids_after = set(d["id"] for d in list_mutable_documents(real_demo_col))
+    assert real_demo_ids_after == real_demo_ids_before, "Real demo collection was modified during test!"
+
     final_official_count = official_col.count()
     assert final_official_count == 114, f"Official collection corrupted! Expected 114, got {final_official_count}"
     print(f"  Official collection count after CRUD: {final_official_count} (unchanged)")
-    print("Check 3 PASS: CRUD operations isolated to demo collection; official corpus perfectly preserved.")
+    print("Check 3 PASS: CRUD operations executed in isolated temp DB; real demo & official collections 100% untouched.")
 
     # -------------------------------------------------------------------------
     # Check 4: Experiment Results & Official Benchmark Gate Status

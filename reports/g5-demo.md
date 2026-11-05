@@ -38,23 +38,28 @@ Giao diện được thiết kế trực quan, độ tương phản cao, bao g�
 
 ### Tab 2: 🗄️ Collection Explorer (Khám Phá & Thao Tác Trực Tiếp)
 Gồm 2 phân hệ tách biệt hoàn toàn:
-1. **Kho học liệu chính thức (`seminar_corpus_e5` — Chỉ đọc):**
+1. **Kho học liệu chính thức (`seminar_corpus_e5` — Chỉ đọc từ Chroma thật):**
+   - Đọc trực tiếp từ Chroma collection thật qua `col.get(include=['documents', 'metadatas'])`, count lấy từ `col.count()` (**đúng 114 đoạn**), không đọc từ file JSONL.
    - Hiển thị thông số: 114 đoạn tài liệu, 384 dimensions, Cosine metric, trạng thái bất biến (Read-Only).
-   - Bộ lọc xem theo chủ đề và ô tìm kiếm nhanh văn bản.
-   - Bảng dữ liệu tương tác xem toàn bộ 114 passages.
+   - Bộ lọc xem theo chủ đề và ô tìm kiếm nhanh văn bản trên dữ liệu Chroma thật.
+   - Nếu kiểm tra tính nhất quán index thất bại, hiển thị thông báo lỗi rõ ràng thay vì giả mạo cơ sở dữ liệu hợp lệ.
 2. **Collection thao tác trực tiếp (`seminar_demo_mutable` — CRUD Demo):**
    - Collection độc lập dành riêng cho các thao tác thử nghiệm trên lớp, **tuyệt đối không làm thay đổi kho 114 tài liệu chính thức**.
-   - **Thêm (Add):** Nhập ID, tiêu đề, chủ đề, nội dung $\rightarrow$ tự động tính embedding E5 (`passage: `) và nạp vào Chroma.
+   - **Thêm (Add):** Nhập ID, tiêu đề, chủ đề, nội dung $\rightarrow$ kiểm tra ID chưa tồn tại (từ chối nếu trùng ID) $\rightarrow$ tự động tính embedding E5 (`passage: `) và nạp vào Chroma.
    - **Xem & Tìm kiếm (Read & Search):** Duyệt danh sách các tài liệu demo và thử nghiệm tìm kiếm vector trực tiếp trên demo collection.
-   - **Sửa (Update):** Chọn ID $\rightarrow$ sửa tiêu đề, chủ đề, nội dung $\rightarrow$ tự động tái tính embedding E5 và cập nhật Chroma.
+   - **Sửa (Update):** Chọn ID $\rightarrow$ kiểm tra ID phải tồn tại trong collection $\rightarrow$ sửa tiêu đề, chủ đề, nội dung $\rightarrow$ tự động tái tính embedding E5 và cập nhật Chroma.
    - **Xóa (Delete):** Chọn ID $\rightarrow$ xác nhận hộp kiểm an toàn $\rightarrow$ xóa khỏi collection.
 
 ### Tab 3: 📊 Experiment Results (Kết Quả Thực Nghiệm & Cổng Kiểm Duyệt)
-- **Thống kê tổng quan:** 12 test queries, 105 cặp ứng viên pooled, tỷ lệ đồng thuận Top-1 đạt 58.3%.
+- **Thống kê tổng quan động:** Đọc số lượng 12 test queries và tỷ lệ đồng thuận Top-1 (58.3%) từ preview artifact, đọc số lượng nhãn verified/pending động từ `review_pool.csv` (không hardcode).
 - **Trạng thái cổng Verified-Label Gate:**
   - Khi 105 nhãn đang ở trạng thái `pending`, giao diện hiển thị cảnh báo rõ ràng:  
     `⏳ Official benchmark is pending human verification (105/105 candidate labels pending).`
   - Từ chối xuất bản bảng điểm chính thức chưa được con người chứng nhận.
+- **Hiển thị Bảng Điểm Chính Thức Khi Đạt Chuẩn (Gate PASS):**
+  - Hiển thị bảng Macro-Averages so sánh Chroma vs BM25 (Hit@5, MRR@5, nDCG@5 trên 11 câu hỏi answerable).
+  - Hiển thị bảng Per-Query Metrics chi tiết cho từng câu hỏi.
+  - Bảo vệ chống dữ liệu lỗi thời: đối soát đồng thời `corpus_sha256` và `review_pool_sha256`. Nếu nhãn bị thay đổi sau khi chạy official, hệ thống tự động khóa hiển thị và yêu cầu chạy lại evaluator.
 - **Đối soát chi tiết từng câu hỏi:** Dropdown chọn xem bất kỳ câu hỏi nào trong 12 câu hỏi đánh giá $\rightarrow$ hiển thị phân loại, trạng thái đồng thuận, và bảng Top-5 song song giữa Chroma và BM25.
 - **Phân tích định tính câu hỏi Unanswerable (`q_030`):**
   - Giải thích bản chất thuật toán nearest-neighbor không tự động từ chối (abstain).
@@ -62,15 +67,27 @@ Gồm 2 phân hệ tách biệt hoàn toàn:
 
 ---
 
-## 3. Kết Quả 4 Bài Kiểm Chứng Nghiệm Thu (Acceptance Checks)
+## 3. Chi Tiết Các Chỉnh Sửa Sau Review (Targeted Fixes)
 
-Script tự động `scripts/verify_demo_acceptance.py` đã thực thi kiểm chứng toàn bộ 4 tiêu chí chấp nhận:
+1. **FIX 1 — Bảo vệ Dữ liệu Demo khi Chạy Acceptance Test:**
+   - Script `scripts/verify_demo_acceptance.py` chuyển toàn bộ bài kiểm tra CRUD sang thư mục tạm cô lập (`tempfile.TemporaryDirectory`) với client Chroma độc lập.
+   - Không tạo, ghi đè hoặc xóa bất kỳ bản ghi nào trong collection `seminar_demo_mutable` thật của người dùng.
+   - Hàm `add_mutable_document()` trong `src/ui_helpers.py` từ chối nếu ID đã tồn tại; `update_mutable_document()` bắt buộc ID phải tồn tại trước khi cập nhật.
+2. **FIX 2 — Official Corpus Explorer Đọc Trực Tiếp từ Chroma Thật:**
+   - Trong `app.py`, phân hệ Official Explorer loại bỏ hoàn toàn việc đọc `documents.jsonl`, chuyển sang đọc trực tiếp từ Chroma thông qua `col.get(include=['documents', 'metadatas'])`.
+   - Số lượng bản ghi phản ánh trực tiếp từ `col.count() = 114`.
+   - Nếu chỉ mục bị lỗi thời hoặc không khớp, giao diện dừng lại và xuất thông báo lỗi thay vì giả định database hợp lệ.
+3. **FIX 3 — Hoàn Thiện Experiment Results & Chống Kết Quả Lỗi Thời:**
+   - Đọc động số liệu coverage từ `data/eval/review_pool.csv` thay vì gán cứng.
+   - Thêm mã băm `review_pool_sha256` vào metadata của `official_metrics.json` trong `scripts/run_evaluation.py`.
+   - Hàm `check_official_benchmark_eligibility()` kiểm tra đồng thời cả `corpus_sha256` và `review_pool_sha256`; nếu file nhãn bị chỉnh sửa sau khi tính toán, hệ thống lập tức khóa hiển thị để bảo đảm tính liêm chính khoa học.
+   - Hiển thị đầy đủ bảng điểm macro-averages và per-query metrics khi đủ điều kiện.
 
-```powershell
-python scripts/verify_demo_acceptance.py
-```
+---
 
-### Log thực tế:
+## 4. Kết Quả Kiểm Chứng Nghiệm Thu Thực Tế (Minimal Verification)
+
+### 4.1 Bộ Kiểm Chứng Tự Động (`scripts/verify_demo_acceptance.py`):
 ```text
 ================================================================================
 RUNNING G4+G5 DEMO ACCEPTANCE CHECKS
@@ -88,12 +105,12 @@ Check 2 PASS: Metadata pre-filtering strictly enforced on both retrievers.
 
 [Check 3: Isolated Mutable Collection CRUD]
   Official collection count before CRUD: 114 (seminar_corpus_e5)
-  [CRUD Add] Added 'demo_test_crud_01', demo collection count: 1
+  [CRUD Add] Added 'demo_test_crud_01', isolated collection count: 1
   [CRUD Search] Found 'demo_test_crud_01' with cosine distance 0.0846
   [CRUD Update] Updated 'demo_test_crud_01', title is now: 'Học Tăng Cường Nâng Cao'
-  [CRUD Delete] Deleted 'demo_test_crud_01', demo collection count: 0
+  [CRUD Delete] Deleted 'demo_test_crud_01', isolated collection count: 0
   Official collection count after CRUD: 114 (unchanged)
-Check 3 PASS: CRUD operations isolated to demo collection; official corpus perfectly preserved.
+Check 3 PASS: CRUD operations executed in isolated temp DB; real demo & official collections 100% untouched.
 
 [Check 4: Experiment Results & Gate Status]
   Loaded preview artifact with 12 test queries.
@@ -106,9 +123,19 @@ ALL 4 DEMO ACCEPTANCE CHECKS PASSED SUCCESSFULLY (PASS)
 ================================================================================
 ```
 
+### 4.2 Kiểm Chứng Safeguards & Double-Hash Gate trên Dữ Liệu Tạm:
+- **Từ chối trùng ID khi Add:** `ValueError: Document ID 'id_1' already exists in demo collection` $\rightarrow$ **PASS**.
+- **Từ chối ID không tồn tại khi Update:** `ValueError: Document ID 'non_existent_id' not found in demo collection` $\rightarrow$ **PASS**.
+- **Hiển thị Official khi 100% verified & hash khớp:** `is_eligible == True` $\rightarrow$ **PASS**.
+- **Khóa Official khi review pool bị sửa sau khi tính toán (SHA-256 mismatch):** `is_eligible == False` kèm cảnh báo $\rightarrow$ **PASS**.
+
+### 4.3 Kiểm Tra Khởi Chạy Server Streamlit:
+- Server khởi chạy ở chế độ headless trên port 8502; endpoint kiểm tra sức khỏe `http://localhost:8502/_stcore/health` phản hồi **HTTP 200 OK**.
+- **Lưu ý trung thực:** Môi trường dòng lệnh của AI Agent không có giao diện đồ họa trình duyệt để thực hiện click chuột thực tế. Do đó, người dùng được khuyến nghị khởi chạy lệnh `streamlit run app.py` trên máy cá nhân để trải nghiệm giao diện người dùng đầy đủ.
+
 ---
 
-## 4. Ba Kịch Bản Trình Diễn Đề Xuất Trước Lớp Học
+## 5. Ba Kịch Bản Trình Diễn Đề Xuất Trước Lớp Học
 
 Dành cho người trình bày khi báo cáo Seminar:
 
@@ -135,11 +162,11 @@ Dành cho người trình bày khi báo cáo Seminar:
   2. Xem số lượng bản ghi tăng từ 0 lên 1 và kiểm tra kết quả tìm kiếm vector ngay lập tức.
   3. Cập nhật nội dung và chứng kiến vector được tái tính toán tức thì.
   4. Xóa tài liệu và xác nhận số bản ghi quay về 0.
-  5. Đối chiếu lại kho chính thức `seminar_corpus_e5`: vẫn vẹn nguyên đúng 114 tài liệu.
+  5. Đối chiếu lại kho chính thức `seminar_corpus_e5`: vẫn vẹn nguyên đúng 114 tài liệu đọc từ Chroma.
 - **Điểm nhấn giảng dạy:** Minh họa trực quan vòng đời dữ liệu (Data Lifecycle) trong Vector Database mà không lo ngại làm hỏng kho dữ liệu chuẩn.
 
 ---
 
-## 5. Giới Hạn Còn Tồn Tại
-- Toàn bộ 105 cặp ứng viên trong `data/eval/review_pool.csv` hiện vẫn ở trạng thái `pending` (chưa thẩm định thủ công).
+## 6. Giới Hạn Còn Tồn Tại
+- Toàn bộ 105 cặp ứng viên trong `data/eval/review_pool.csv` hiện vẫn ở trạng thái `pending` (chờ người kiểm duyệt thẩm định độc lập ngoài working tree).
 - Ứng dụng tuân thủ nghiêm ngặt nguyên tắc khoa học: **chưa hiển thị bảng điểm benchmark chính thức** trên giao diện khi nhãn chưa được con người phê duyệt.

@@ -24,6 +24,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.evaluation import ReviewPoolGate
 from src.indexer import (
     DEFAULT_COLLECTION_NAME,
     DEFAULT_DATA_PATH,
@@ -353,41 +354,66 @@ def render_tab_collection_explorer() -> None:
         try:
             indexer = CorpusIndexer()
             is_consistent, msg, manifest = indexer.check_index_consistency()
+            if not is_consistent:
+                st.error(f"❌ Collection '{DEFAULT_COLLECTION_NAME}' chưa đồng bộ hoặc bị lỗi: {msg}")
+                st.code("python scripts/build_index.py", language="powershell")
+            else:
+                col = client.get_collection(DEFAULT_COLLECTION_NAME)
+                real_count = col.count()
 
-            m1, m2, m3, m4 = st.columns(4)
-            m1.metric("Tổng Tài Liệu", f"{manifest.get('document_count', 114)} đoạn")
-            m2.metric("Số Chiều Vector", "384 dims")
-            m3.metric("Độ Đo Khoảng Cách", "Cosine")
-            m4.metric("Trạng Thái", "🔒 Bất biến (Read-Only)")
+                m1, m2, m3, m4 = st.columns(4)
+                m1.metric("Tổng Tài Liệu (Chroma)", f"{real_count} đoạn")
+                m2.metric("Số Chiều Vector", f"{manifest.get('vector_dim', 384)} dims")
+                m3.metric("Độ Đo Khoảng Cách", "Cosine")
+                m4.metric("Trạng Thái", "🔒 Bất biến (Read-Only)")
 
-            docs = load_corpus_documents(DEFAULT_DATA_PATH)
-            df_docs = pd.DataFrame(docs)
+                # Read records directly from Chroma without embeddings
+                chroma_data = col.get(include=["documents", "metadatas"])
+                chroma_records = []
+                ids = chroma_data.get("ids", [])
+                docs = chroma_data.get("documents", [])
+                metas = chroma_data.get("metadatas", [])
 
-            # Topic filter for official explorer
-            filter_col1, filter_col2 = st.columns([1, 2])
-            with filter_col1:
-                topic_sel = st.selectbox("Lọc xem theo chủ đề:", STANDARD_TOPICS, key="official_topic_filter")
-            with filter_col2:
-                search_kw = st.text_input("Tìm nhanh trong tiêu đề/nội dung:", "", key="official_kw_search")
+                for d_id, doc_text, meta in zip(ids, docs, metas):
+                    meta_dict = meta if meta is not None else {}
+                    chroma_records.append({
+                        "id": d_id,
+                        "topic": meta_dict.get("topic", "General"),
+                        "title": meta_dict.get("title", ""),
+                        "text": doc_text,
+                        "source_id": meta_dict.get("source_id", ""),
+                        "source_url": meta_dict.get("source_url", ""),
+                    })
 
-            filtered_df = df_docs
-            if topic_sel != "All Topics":
-                filtered_df = filtered_df[filtered_df["topic"] == topic_sel]
-            if search_kw.strip():
-                kw = search_kw.strip().lower()
-                filtered_df = filtered_df[
-                    filtered_df["title"].str.lower().str.contains(kw)
-                    | filtered_df["text"].str.lower().str.contains(kw)
-                ]
+                # Sort by ID
+                chroma_records.sort(key=lambda x: x["id"])
+                df_docs = pd.DataFrame(chroma_records)
 
-            st.write(f"Hiển thị **{len(filtered_df)}** / {len(df_docs)} đoạn tài liệu:")
-            st.dataframe(
-                filtered_df[["id", "topic", "title", "text", "source_id"]],
-                use_container_width=True,
-                height=350,
-            )
+                # Topic filter for official explorer
+                filter_col1, filter_col2 = st.columns([1, 2])
+                with filter_col1:
+                    topic_sel = st.selectbox("Lọc xem theo chủ đề:", STANDARD_TOPICS, key="official_topic_filter")
+                with filter_col2:
+                    search_kw = st.text_input("Tìm nhanh trong tiêu đề/nội dung:", "", key="official_kw_search")
+
+                filtered_df = df_docs
+                if topic_sel != "All Topics":
+                    filtered_df = filtered_df[filtered_df["topic"] == topic_sel]
+                if search_kw.strip():
+                    kw = search_kw.strip().lower()
+                    filtered_df = filtered_df[
+                        filtered_df["title"].str.lower().str.contains(kw)
+                        | filtered_df["text"].str.lower().str.contains(kw)
+                    ]
+
+                st.write(f"Hiển thị **{len(filtered_df)}** / {real_count} đoạn tài liệu từ Chroma DB:")
+                st.dataframe(
+                    filtered_df[["id", "topic", "title", "text", "source_id"]],
+                    use_container_width=True,
+                    height=350,
+                )
         except Exception as e:
-            st.error(f"Lỗi khi đọc official collection: {e}")
+            st.error(f"Lỗi khi đọc official collection từ Chroma: {e}")
 
     # -------------------------------------------------------------------------
     # Sub-tab 2: Isolated Mutable Demo Collection (CRUD)
@@ -514,38 +540,84 @@ def render_tab_experiments() -> None:
         "Bảng điều khiển theo dõi tiến độ thẩm định nhãn và kết quả đánh giá trên **tập 12 test queries cố định** (G3)."
     )
 
-    # 1. Official Benchmark Gate Status Banner
+    # 1. Official Benchmark Gate Status Banner & Verification
     is_official_eligible, gate_msg, official_data = check_official_benchmark_eligibility(
         review_pool_path=DEFAULT_REVIEW_POOL_PATH,
         corpus_path=DEFAULT_DATA_PATH,
         official_json_path=DEFAULT_OFFICIAL_JSON_PATH,
     )
 
-    if not is_official_eligible:
+    # 2. Dynamic coverage statistics from review pool
+    gate = ReviewPoolGate(DEFAULT_REVIEW_POOL_PATH)
+    coverage = gate.get_coverage_statistics()
+    total_pairs = coverage.get("total_pairs", 105)
+    verified_pairs = coverage.get("verified_pairs", 0)
+    completion_pct = coverage.get("completion_percentage", 0.0)
+
+    # 3. Dynamic metadata from preview artifact
+    preview_artifact = load_preview_artifact(DEFAULT_PREVIEW_JSON_PATH)
+    total_queries = 12
+    agreement_str = "N/A"
+    if preview_artifact and "agreement" in preview_artifact:
+        agr_cnt = preview_artifact["agreement"].get("top1_agreement_count", 0)
+        agr_pct = preview_artifact["agreement"].get("top1_agreement_percentage", 0.0)
+        total_queries = preview_artifact.get("subset", {}).get("total_queries", 12)
+        agreement_str = f"{agr_cnt} / {total_queries} ({agr_pct}%)"
+
+    st.markdown("#### 📈 Thống Kê Tổng Quan")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Số Câu Hỏi Đánh Giá", f"{total_queries} queries (Test split)")
+    c2.metric("Số Cặp Ứng Viên Cần Duyệt", f"{total_pairs} candidate pairs")
+    c3.metric("Tỷ Lệ Đồng Thuận Top-1", agreement_str)
+    c4.metric("Tiến Độ Thẩm Định Nhãn", f"{verified_pairs} / {total_pairs} ({completion_pct}%)")
+
+    st.divider()
+
+    # 4. Official Benchmark Metrics Table (when Gate PASS) OR Pending Banner
+    if is_official_eligible and official_data:
+        st.success("✅ **Official Benchmark Đã Thẩm Định Hoàn Tất:** Kết quả đạt chuẩn khoa học với 100% nhãn verified!")
+
+        # Macro-averages comparison table
+        st.markdown("#### 🏆 Bảng Điểm Benchmark Chính Thức (Macro-Averages, n = 11 answerable)")
+        st.caption("Các chỉ số được tính toán trên 100% nhãn đã được kiểm duyệt bởi con người (loại trừ q_030 unanswerable).")
+        macro = official_data.get("macro_averages", {})
+        c_m = macro.get("chroma", {})
+        b_m = macro.get("bm25", {})
+        df_macro = pd.DataFrame([
+            {"Chỉ số (Metric)": "Hit@5", "Chroma (E5)": f"{c_m.get('hit@5', 0.0):.4f}", "BM25 (PyVi)": f"{b_m.get('hit@5', 0.0):.4f}", "Chênh lệch": f"{c_m.get('hit@5', 0.0) - b_m.get('hit@5', 0.0):+.4f}"},
+            {"Chỉ số (Metric)": "MRR@5", "Chroma (E5)": f"{c_m.get('mrr@5', 0.0):.4f}", "BM25 (PyVi)": f"{b_m.get('mrr@5', 0.0):.4f}", "Chênh lệch": f"{c_m.get('mrr@5', 0.0) - b_m.get('mrr@5', 0.0):+.4f}"},
+            {"Chỉ số (Metric)": "nDCG@5", "Chroma (E5)": f"{c_m.get('ndcg@5', 0.0):.4f}", "BM25 (PyVi)": f"{b_m.get('ndcg@5', 0.0):.4f}", "Chênh lệch": f"{c_m.get('ndcg@5', 0.0) - b_m.get('ndcg@5', 0.0):+.4f}"},
+        ])
+        st.table(df_macro)
+
+        # Per-query official metrics table
+        st.markdown("#### 📋 Chi Tiết Điểm Số Theo Từng Câu Hỏi (Per-Query Metrics)")
+        per_query_rows = []
+        for item in official_data.get("per_query_metrics", []):
+            cm = item.get("chroma", {}).get("metrics", {})
+            bm = item.get("bm25", {}).get("metrics", {})
+            per_query_rows.append({
+                "Query ID": item.get("query_id"),
+                "Thể loại": item.get("category"),
+                "Chroma Hit@5": cm.get("hit@5"),
+                "Chroma MRR@5": cm.get("mrr@5"),
+                "Chroma nDCG@5": cm.get("ndcg@5"),
+                "BM25 Hit@5": bm.get("hit@5"),
+                "BM25 MRR@5": bm.get("mrr@5"),
+                "BM25 nDCG@5": bm.get("ndcg@5"),
+            })
+        st.dataframe(pd.DataFrame(per_query_rows), use_container_width=True)
+        st.divider()
+    else:
         st.warning(
             f"⏳ **Official benchmark is pending human verification.**\n\n"
             f"Chi tiết: {gate_msg}\n\n"
             "Để bảo đảm tính liêm chính khoa học, điểm số chính thức (Hit@5, MRR@5, nDCG@5) chỉ được hiển thị "
-            "sau khi người kiểm duyệt thẩm định 105 cặp ứng viên trong `data/eval/review_pool.csv`. "
+            "sau khi người kiểm duyệt thẩm định đầy đủ 105 cặp ứng viên trong `data/eval/review_pool.csv`. "
             "Dưới đây là kết quả đối sánh thứ hạng xem trước (Preview Mode)."
         )
-    else:
-        st.success("✅ **Official Benchmark Đã Thẩm Định Hoàn Tất:** Kết quả đạt tiêu chuẩn khoa học!")
 
-    # 2. Overview metrics
-    preview_artifact = load_preview_artifact(DEFAULT_PREVIEW_JSON_PATH)
-
-    st.markdown("#### 📈 Thống Kê Tổng Quan")
-    c1, c2, c3, c4 = st.columns(4)
-
-    c1.metric("Số Câu Hỏi Đánh Giá", "12 queries (Test split)")
-    c2.metric("Số Cặp Ứng Viên Cần Duyệt", "105 candidate pairs")
-    c3.metric("Tỷ Lệ Đồng Thuận Top-1", "7 / 12 (58.3%)")
-    c4.metric("Tiến Độ Thẩm Định Nhãn", "0 / 105 (Pending)")
-
-    st.divider()
-
-    # 3. Per-query ranking disagreement preview
+    # 5. Per-query ranking disagreement preview
     if preview_artifact and "eval_results" in preview_artifact:
         st.markdown("#### 🔍 Đối Soát Chi Tiết Từng Câu Hỏi Trong Tập Đánh Giá (n = 12)")
 
@@ -574,7 +646,7 @@ def render_tab_experiments() -> None:
             df_b = pd.DataFrame(curr_item["bm25_top_k"])
             st.dataframe(df_b, use_container_width=True)
 
-    # 4. Qualitative Analysis on Unanswerable Query (q_030)
+    # 6. Qualitative Analysis on Unanswerable Query (q_030)
     st.divider()
     st.markdown("#### ❓ Phân Tích Định Tính Câu Hỏi Unanswerable (`q_030`)")
     st.markdown(
