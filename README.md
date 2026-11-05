@@ -5,6 +5,7 @@ Dự án Seminar môn Nhận diện Mẫu (Pattern Recognition) - Nghiên cứu 
 - **GitHub Issue #1 (TASK G0):** [Issue #1 — Bootstrap Windows repository + Chroma smoke test](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/1)
 - **GitHub Issue #3 (TASK G1):** [Issue #3 — Curate Vietnamese IT corpus, evaluation queries and draft qrels](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/3)
 - **GitHub Issue #5 (TASK G2):** [Issue #5 — Index 114 passages and implement Chroma + Vietnamese BM25 retrieval CLI](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/5)
+- **GitHub Issue #7 (TASK G3):** [Issue #7 — Reproducible retrieval evaluation and pooled relevance review](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/7)
 - **Embedding Model:** `intfloat/multilingual-e5-small` (384 chiều, tiền tố `passage: ` và `query: `, chuẩn hóa L2)
 - **Vector Database:** Chroma (`chromadb.PersistentClient`) với metric Cosine Distance
 - **Lexical Baseline:** BM25Okapi (`rank_bm25`) kết hợp phân đoạn từ tiếng Việt `pyvi`
@@ -122,7 +123,45 @@ python scripts/compare_search.py --query "thuật toán đồ thị và tìm ki�
 
 ---
 
-## 5. Cấu trúc thư mục dự án
+## 5. Đánh Giá Truy Hồi & Kiểm Duyệt Nhãn (Task G3)
+
+Quy trình đánh giá có thể tái lập trên tập 12 test queries cố định (`data/eval/evaluation_subset.json`).
+
+### 5.1 Tạo Candidate Review Pool
+
+Hợp nhất Top-5 của Chroma, Top-5 của BM25 và các ứng viên draft qrels thành 105 cặp query-doc độc nhất chờ người kiểm duyệt:
+
+```powershell
+python scripts/prepare_eval_pool.py
+```
+
+### 5.2 Chạy Kiểm tra Metrics Fixture
+
+Kiểm chứng các công thức toán học (`Hit@5`, `MRR@5`, `nDCG@5`) trên fixture mẫu đối chiếu giá trị tính tay:
+
+```powershell
+python scripts/run_evaluation.py --fixture-test
+```
+
+### 5.3 Chạy Đánh giá Xem trước (Preview Mode)
+
+Xuất kết quả đối sánh Top-1, phân tích định tính câu hỏi unanswerable `q_030` và lưu metadata tái lập tại `results/g3/rankings_preview.json`:
+
+```powershell
+python scripts/run_evaluation.py
+```
+
+### 5.4 Chạy Đánh giá Chính thức (Verified-Label Gate)
+
+Chế độ nghiêm ngặt yêu cầu 100% nhãn ứng viên trong pool phải được người kiểm duyệt xác nhận (`review_status='verified'`). Nếu còn nhãn pending, hệ thống sẽ từ chối và báo lỗi minh bạch:
+
+```powershell
+python scripts/run_evaluation.py --official
+```
+
+---
+
+## 6. Cấu trúc thư mục dự án
 
 ```text
 PatternRecognition_Seminar/
@@ -133,24 +172,33 @@ PatternRecognition_Seminar/
 │   ├── eval/
 │   │   ├── queries.jsonl        # 32 câu hỏi đánh giá (dev/test split)
 │   │   ├── qrels_draft.jsonl    # 86 nhãn tương quan dự thảo {0, 1, 2}
-│   │   └── label_review.csv     # Bảng Excel hỗ trợ người kiểm duyệt rà nhãn
+│   │   ├── label_review.csv     # Bảng Excel hỗ trợ người kiểm duyệt rà nhãn G1
+│   │   ├── evaluation_subset.json # 12 câu truy vấn test cố định phục vụ benchmark G3
+│   │   └── review_pool.csv      # 105 cặp ứng viên pooled (Chroma + BM25 + Draft)
 │   ├── smoke_documents.json     # 16 tài liệu thử nghiệm G0 (giữ nguyên độc lập)
-│   └── README.md                # Đặc tả schema dữ liệu G1
+│   └── README.md                # Đặc tả schema dữ liệu G1 & G3
 ├── src/
 │   ├── __init__.py
 │   ├── indexer.py               # Quản lý Chroma collection, batch embedding, manifest
 │   ├── chroma_search.py         # Module tìm kiếm ngữ nghĩa Chroma
-│   └── bm25_search.py           # Module tìm kiếm từ khóa BM25 tiếng Việt (PyVi)
+│   ├── bm25_search.py           # Module tìm kiếm từ khóa BM25 tiếng Việt (PyVi)
+│   └── evaluation.py            # Tính toán metrics (Hit@5, MRR@5, nDCG@5) & Verified Gate
 ├── scripts/
 │   ├── build_index.py           # CLI xây dựng, kiểm tra và rebuild index Chroma
 │   ├── compare_search.py        # CLI đối sánh tìm kiếm Chroma vs BM25
+│   ├── prepare_eval_pool.py     # CLI tạo candidate review pool 12 test queries
+│   ├── run_evaluation.py        # CLI chạy đánh giá truy hồi và kiểm tra cổng gate
 │   ├── validate_dataset.py      # Validator kiểm tra toàn vẹn dữ liệu G1
 │   ├── smoke_chroma.py          # Smoke test G0
 │   └── verify_persistence.py    # Kiểm chứng persistence G0 (2 processes)
+├── results/
+│   └── g3/
+│       └── rankings_preview.json # Báo cáo kết quả và metadata có thể tái lập
 ├── reports/
 │   ├── g0-smoke.md              # Báo cáo thực nghiệm G0
 │   ├── g1-dataset.md            # Báo cáo tập dữ liệu G1
-│   └── g2-retrieval.md          # Báo cáo kỹ thuật đối sánh truy hồi G2
+│   ├── g2-retrieval.md          # Báo cáo kỹ thuật đối sánh truy hồi G2
+│   └── g3-evaluation.md         # Báo cáo quy trình đánh giá và candidate pool G3
 ├── .gitignore                   # Loại trừ .venv, chroma_db, model weights, cache
 ├── requirements.txt             # Danh sách dependencies đã kiểm tra
 └── README.md                    # Hướng dẫn thiết lập và thực thi dự án
