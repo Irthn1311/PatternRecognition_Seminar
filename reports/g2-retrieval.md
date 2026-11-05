@@ -39,17 +39,23 @@ Trước khi đưa vào lưu trữ, toàn bộ 114 tài liệu được kiểm t
 
 ## 3. Quản Lý Tính Nhất Quán & Tái Lập (Index Consistency)
 
-Để tránh việc vô tình sử dụng chỉ mục cũ không đồng bộ khi dữ liệu hoặc cấu hình thay đổi, hệ thống lưu tệp manifest tại `chroma_db/index_manifest.json`:
-- Ghi nhận: SHA-256 của tập dữ liệu `documents.jsonl`, tên mô hình, số chiều vector, số lượng tài liệu và thời điểm tạo.
-- **Cơ chế Idempotency & Cache Check:**
-  - Khi chạy `python scripts/build_index.py`, hệ thống đối soát SHA-256 của tệp dữ liệu với manifest. Nếu trùng khớp, hệ thống **bỏ qua hoàn toàn bước re-encoding**, giúp khởi động và truy vấn tức thì (< 0.2 giây).
-  - Khi người dùng chủ động yêu cầu `--rebuild`, hệ thống chỉ xóa và tạo lại đúng collection `seminar_corpus_e5` thông qua API của Chroma, tuyệt đối không dùng `shutil.rmtree()` xóa thư mục đĩa của người dùng.
+Để loại trừ triệt để nguy cơ sử dụng chỉ mục cũ (stale/misaligned index) khi dữ liệu hoặc cấu hình thay đổi:
+- **Tệp Manifest (`chroma_db/index_manifest.json`):** Lưu trữ SHA-256 của tập dữ liệu `documents.jsonl`, tên mô hình, số chiều vector, số lượng tài liệu và thời điểm tạo.
+- **Đối soát ba bên (Three-way Consistency Check):** Phương thức `check_index_consistency()` đối chiếu đồng thời:
+  1. Số lượng tài liệu trong collection Chroma.
+  2. Số lượng tài liệu ghi nhận trong manifest.
+  3. **Số lượng tài liệu thực tế đọc từ tệp corpus trên đĩa.**
+  4. Mã băm SHA-256 của tệp corpus hiện tại so với manifest.
+- **Ngăn chặn Silent Upsert:**
+  - Nếu collection đã tồn tại nhưng manifest bị thiếu hoặc dữ liệu/cấu hình bị thay đổi (ví dụ có tài liệu bị xóa khỏi corpus), lệnh build thông thường sẽ **chủ động từ chối và báo lỗi ngay lập tức** (thay vì âm thầm upsert đè lên collection cũ khiến các ID cũ bị mồ côi/stale).
+  - Người dùng bắt buộc phải truyền `--rebuild` (`python scripts/build_index.py --rebuild`) để hệ thống xóa và tái tạo sạch sẽ collection mục tiêu.
+- **Bảo vệ Truy vấn:** `ChromaRetriever` tự động kiểm tra tính nhất quán trước khi thực thi truy vấn. Nếu index bị lỗi thời hoặc không khớp dữ liệu, truy vấn sẽ ném ngoại lệ rõ ràng thay vì trả về kết quả sai lệch.
 
 ---
 
 ## 4. Kết Quả Kiểm Chứng Tối Thiểu (Minimal Verification)
 
-### Check 1 — Indexing & Idempotency: PASS
+### Check 1 — Indexing & Idempotency trên 114 passages: PASS
 - Chạy lần đầu: nạp 114 tài liệu, tạo manifest thành công.
 - Chạy lần thứ hai: hệ thống nhận diện `Index 'seminar_corpus_e5' is consistent (114 records, SHA256: a9633f3a)`, thông báo `Index is already up-to-date. Skipping re-encoding`. Số lượng bản ghi giữ nguyên chính xác 114.
 
@@ -57,7 +63,19 @@ Trước khi đưa vào lưu trữ, toàn bộ 114 tài liệu được kiểm t
 - Đóng tiến trình index hoàn toàn, khởi tạo tiến trình Python mới từ dòng lệnh.
 - Mở lại cơ sở dữ liệu `chroma_db` đã lưu và thực thi truy vấn thành công mà không cần nạp lại corpus.
 
-### Check 3 — BM25 & Chroma Comparison trên 3 truy vấn Dev: PASS
+### Check 3 — Kiểm chứng Ngăn Chặn Stale Index (Thư mục tạm cô lập): PASS
+Thực nghiệm kiểm chứng độc lập trên tập dữ liệu và thư mục database tạm thời:
+1. Tạo corpus gồm 3 tài liệu và build index thành công (Count = 3).
+2. Xóa 1 tài liệu khỏi corpus (corpus chỉ còn 2 tài liệu).
+3. Chạy `build_index.py --check`: Phát hiện lỗi mismatch SHA-256 và trả về exit code `1`.
+4. Chạy `build_index.py` thông thường không có `--rebuild`: Từ chối nạp đè và báo lỗi `[Build Error]: Existing index is inconsistent... Ingestion aborted to prevent stale or orphaned records. Please run with '--rebuild'` (Exit code `1`).
+5. Chạy `build_index.py --rebuild`: Thực thi thành công, xóa sạch collection cũ và tạo lại collection mới. Kiểm tra Chroma xác nhận chỉ còn đúng 2 tài liệu (`['t_001', 't_002']`).
+
+### Check 4 — Kiểm chứng CLI Error Code & Input Guard: PASS
+1. **Kiểm tra Exit Code khi có lỗi:** Chạy `compare_search.py --db-path ./non_existent_db --mode both --query "kiểm tra lỗi"`. Hệ thống báo lỗi Chroma không tìm thấy collection, BM25 vẫn chạy để xuất thông tin gỡ lỗi, và toàn bộ lệnh kết thúc với **exit code `1`** (không còn trả về exit code 0 giả mạo).
+2. **Kiểm tra Top-K Guard:** Chạy với `--top-k 0` và `--top-k -1`: Báo lỗi `Error: --top-k must be a positive integer greater than 0.` và kết thúc ngay với exit code `1`, ngăn ngừa lỗi negative slicing trong Python.
+
+### Check 5 — BM25 & Chroma Comparison trên 3 truy vấn Dev: PASS
 Thực nghiệm đối sánh chi tiết Top-5 trên 3 câu hỏi thuộc tập `dev` (`q_001`, `q_005`, `q_019`):
 
 #### Truy vấn 1 (`q_001` — Semantic Paraphrase, Dev):
@@ -112,7 +130,7 @@ Thực nghiệm đối sánh chi tiết Top-5 trên 3 câu hỏi thuộc tập `
 
 ---
 
-### Check 4 — Metadata Topic Filtering: PASS
+### Check 6 — Metadata Topic Filtering: PASS
 Thực hiện truy vấn với bộ lọc `--topic "Algorithms"`:
 ```powershell
 python scripts/compare_search.py --query "tìm kiếm phân cấp đồ thị" --topic "Algorithms" --top-k 5

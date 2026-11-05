@@ -13,7 +13,13 @@ from chromadb.api.models.Collection import Collection
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from src.indexer import DEFAULT_COLLECTION_NAME, DEFAULT_DB_PATH, DEFAULT_MODEL_NAME
+from src.indexer import (
+    DEFAULT_COLLECTION_NAME,
+    DEFAULT_DATA_PATH,
+    DEFAULT_DB_PATH,
+    DEFAULT_MODEL_NAME,
+    CorpusIndexer,
+)
 
 
 class ChromaRetriever:
@@ -24,11 +30,13 @@ class ChromaRetriever:
         db_path: str = DEFAULT_DB_PATH,
         collection_name: str = DEFAULT_COLLECTION_NAME,
         model_name: str = DEFAULT_MODEL_NAME,
+        data_path: str = DEFAULT_DATA_PATH,
         device: str = "cpu",
     ) -> None:
         self.db_path = db_path
         self.collection_name = collection_name
         self.model_name = model_name
+        self.data_path = data_path
         self.device = device
 
         self._client: Optional[chromadb.PersistentClient] = None
@@ -74,14 +82,31 @@ class ChromaRetriever:
         if not query_str:
             return []
 
+        if top_k <= 0:
+            return []
+
+        # Validate index consistency before querying to prevent stale/misaligned search
+        indexer = CorpusIndexer(
+            db_path=self.db_path,
+            collection_name=self.collection_name,
+            model_name=self.model_name,
+            data_path=self.data_path,
+            device=self.device,
+        )
+        is_consistent, msg, _ = indexer.check_index_consistency()
+        if not is_consistent:
+            raise RuntimeError(
+                f"Chroma index '{self.collection_name}' at '{self.db_path}' is inconsistent or missing:\n"
+                f"  -> {msg}\n"
+                f"Please run 'python scripts/build_index.py' (or '--rebuild') to synchronize the index."
+            )
+
         total_records = self.collection.count()
         if total_records == 0:
             return []
 
         # Clamp top_k to total records
         effective_k = min(top_k, total_records)
-        if effective_k <= 0:
-            return []
 
         # External query embedding
         query_vec = self.embed_query(query_str)

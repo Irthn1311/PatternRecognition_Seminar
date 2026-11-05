@@ -142,12 +142,19 @@ def main() -> None:
     print(f"TOP-K: {args.top_k} | MODE: {args.mode.upper()}")
     print(f"==========================================================================================")
 
+    if args.top_k <= 0:
+        print("Error: --top-k must be a positive integer greater than 0.", file=sys.stderr)
+        sys.exit(1)
+
+    has_error = False
+
     # Chroma retrieval
     if args.mode in ("chroma", "both"):
         try:
             chroma_retriever = ChromaRetriever(
                 db_path=args.db_path,
                 collection_name=args.collection_name,
+                data_path=args.data_path,
             )
             chroma_results = chroma_retriever.search(
                 query=query_text,
@@ -156,8 +163,9 @@ def main() -> None:
             )
             print_results_block("Chroma Semantic Search (Multilingual-E5-Small)", chroma_results, "Cosine Distance")
         except Exception as e:
+            has_error = True
             print(f"\n[Chroma Error]: {e}", file=sys.stderr)
-            print("Hint: If the index has not been built yet, run 'python scripts/build_index.py' first.", file=sys.stderr)
+            print("Hint: Run 'python scripts/build_index.py' (or with '--rebuild') to ensure index consistency.", file=sys.stderr)
 
     # BM25 retrieval
     if args.mode in ("bm25", "both"):
@@ -170,10 +178,14 @@ def main() -> None:
             )
             print_results_block("Vietnamese BM25 Baseline (PyVi Tokenizer + BM25Okapi)", bm25_results, "BM25 Score")
         except Exception as e:
+            has_error = True
             print(f"\n[BM25 Error]: {e}", file=sys.stderr)
 
-    if args.mode == "both":
+    if args.mode == "both" and not has_error:
         print_comparison_disclaimer()
+
+    if has_error:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

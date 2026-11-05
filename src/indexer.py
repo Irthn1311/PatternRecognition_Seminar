@@ -134,8 +134,21 @@ class CorpusIndexer:
         Verifies whether existing Chroma index matches current dataset and config.
         Returns (is_consistent, message, manifest_dict).
         """
+        # 1. Check collection existence
+        existing_cols = [c.name for c in self.client.list_collections()]
+        if self.collection_name not in existing_cols:
+            return False, f"Collection '{self.collection_name}' not found in database.", None
+
+        col = self.client.get_collection(self.collection_name)
+        current_count = col.count()
+
+        # If collection exists with records but manifest is missing, index is untracked
         if not self.manifest_path.exists():
-            return False, "Manifest file not found. Index has not been built yet.", None
+            return (
+                False,
+                f"Manifest file not found, but collection '{self.collection_name}' exists with {current_count} records. Untracked index.",
+                None,
+            )
 
         try:
             with open(self.manifest_path, "r", encoding="utf-8") as f:
@@ -143,15 +156,7 @@ class CorpusIndexer:
         except Exception as e:
             return False, f"Failed to read index manifest: {e}", None
 
-        # Check collection existence
-        existing_cols = [c.name for c in self.client.list_collections()]
-        if self.collection_name not in existing_cols:
-            return False, f"Collection '{self.collection_name}' not found in database.", manifest
-
-        col = self.client.get_collection(self.collection_name)
-        current_count = col.count()
-
-        # Check dataset SHA-256
+        # Check dataset file existence
         if not Path(self.data_path).exists():
             return False, f"Corpus data file '{self.data_path}' does not exist.", manifest
 
@@ -159,24 +164,34 @@ class CorpusIndexer:
         if manifest.get("dataset_sha256") != current_sha:
             return (
                 False,
-                f"Dataset hash mismatch: index built with {manifest.get('dataset_sha256')[:8]}, current file is {current_sha[:8]}.",
+                f"Dataset hash mismatch: index was built with SHA256 {manifest.get('dataset_sha256', '')[:8]}, current file is {current_sha[:8]}.",
                 manifest,
             )
 
         if manifest.get("model_name") != self.model_name:
             return (
                 False,
-                f"Model mismatch: index built with {manifest.get('model_name')}, current is {self.model_name}.",
+                f"Model mismatch: index was built with '{manifest.get('model_name')}', current model is '{self.model_name}'.",
                 manifest,
             )
 
         if manifest.get("collection_name") != self.collection_name:
-            return False, f"Collection mismatch: manifest={manifest.get('collection_name')}.", manifest
+            return False, f"Collection name mismatch: manifest has '{manifest.get('collection_name')}', expected '{self.collection_name}'.", manifest
 
         if manifest.get("document_count") != current_count:
             return (
                 False,
                 f"Record count mismatch: manifest expected {manifest.get('document_count')}, collection has {current_count}.",
+                manifest,
+            )
+
+        # Cross-verify with actual corpus documents count on disk
+        docs = load_corpus_documents(self.data_path)
+        actual_corpus_count = len(docs)
+        if actual_corpus_count != current_count or actual_corpus_count != manifest.get("document_count"):
+            return (
+                False,
+                f"Corpus document count mismatch: actual corpus has {actual_corpus_count} documents, collection has {current_count}, and manifest expects {manifest.get('document_count')}.",
                 manifest,
             )
 
@@ -205,20 +220,39 @@ class CorpusIndexer:
     def build_index(self, force_rebuild: bool = False, batch_size: int = 32) -> int:
         """
         Builds or updates Chroma index from corpus.
-        If index is already consistent and not force_rebuild, skips re-embedding.
+        - First-time build: creates collection and ingests documents.
+        - Already consistent: skips re-encoding unless force_rebuild is True.
+        - Inconsistent: raises RuntimeError requiring --rebuild to prevent stale records.
         """
-        is_consistent, msg, _ = self.check_index_consistency()
-        if is_consistent and not force_rebuild:
-            print(f"[Index] {msg}")
-            print("[Index] Index is already up-to-date. Skipping re-encoding.")
-            return self.collection.count()
+        existing_cols = [c.name for c in self.client.list_collections()]
+        collection_exists = self.collection_name in existing_cols
+        col_count = self.client.get_collection(self.collection_name).count() if collection_exists else 0
+        has_manifest = self.manifest_path.exists()
 
         if force_rebuild:
             print(f"[Index] Force rebuild requested. Recreating collection '{self.collection_name}'...")
-            existing_cols = [c.name for c in self.client.list_collections()]
-            if self.collection_name in existing_cols:
+            if collection_exists:
                 self.client.delete_collection(self.collection_name)
+            if has_manifest:
+                try:
+                    self.manifest_path.unlink()
+                except OSError:
+                    pass
             self._collection = None
+        else:
+            # If collection exists and has records (or has a manifest), check consistency
+            if collection_exists and (col_count > 0 or has_manifest):
+                is_consistent, msg, _ = self.check_index_consistency()
+                if is_consistent:
+                    print(f"[Index] {msg}")
+                    print("[Index] Index is already up-to-date. Skipping re-encoding.")
+                    return self.collection.count()
+                else:
+                    raise RuntimeError(
+                        f"Existing index is inconsistent with current corpus/configuration:\n  -> {msg}\n"
+                        f"Ingestion aborted to prevent stale or orphaned records.\n"
+                        f"Please run with '--rebuild' (python scripts/build_index.py --rebuild) to recreate the collection safely."
+                    )
 
         docs = load_corpus_documents(self.data_path)
         print(f"[Corpus] Loaded {len(docs)} documents from '{self.data_path}'")

@@ -67,8 +67,12 @@ def main() -> None:
 
     # Build or verify
     print(f"[Main] Managing Chroma index for '{args.collection_name}' at '{args.db_path}'...")
-    count = indexer.build_index(force_rebuild=args.rebuild, batch_size=args.batch_size)
-    print(f"\n[Main] Index is ready. Total active records: {count}")
+    try:
+        count = indexer.build_index(force_rebuild=args.rebuild, batch_size=args.batch_size)
+        print(f"\n[Main] Index is ready. Total active records: {count}")
+    except RuntimeError as e:
+        print(f"\n[Build Error]: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

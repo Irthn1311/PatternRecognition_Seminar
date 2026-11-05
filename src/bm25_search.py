@@ -76,6 +76,9 @@ class BM25Retriever:
         Executes BM25 search.
         If topic is specified, filters valid candidate documents before ranking Top-K.
         """
+        if top_k <= 0:
+            return []
+
         self._ensure_indexed()
         assert self._bm25 is not None
 
