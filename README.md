@@ -8,10 +8,12 @@ Dự án Seminar môn Nhận diện Mẫu (Pattern Recognition) - Nghiên cứu 
 - **GitHub Issue #7 (TASK G3):** [Issue #7 — Reproducible retrieval evaluation and pooled relevance review](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/7)
 - **GitHub Issue #9 (TASK G4+G5):** [Issue #9 — Build Streamlit Semantic Search Lab + demo acceptance checks](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/9)
 - **GitHub Issue #12 (TASK UI/UX + Audit):** [Issue #12 — UI/UX hotfix + dev-only retrieval relevance audit](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/12)
+- **GitHub Issue #14 (TASK Notebook Thực nghiệm):** [Issue #14 — Jupyter experiment notebook aligned with slides](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/14)
 - **Embedding Model:** `intfloat/multilingual-e5-small` (384 chiều, tiền tố `passage: ` và `query: `, chuẩn hóa L2)
 - **Vector Database:** Chroma (`chromadb.PersistentClient`) với metric Cosine Distance
 - **Lexical Baseline:** BM25Okapi (`rank_bm25`) kết hợp phân đoạn từ tiếng Việt `pyvi`
 - **Interactive UI:** Streamlit (`app.py`) với cấu hình Dark Theme chuẩn trình chiếu (`.streamlit/config.toml`)
+- **Jupyter Notebook:** `notebooks/Chroma_Seminar_Experiments.ipynb` (5 phần thực nghiệm đối sánh theo slide)
 
 ---
 
@@ -195,13 +197,49 @@ python scripts/verify_demo_acceptance.py
 
 ---
 
-## 7. Cấu trúc thư mục dự án
+## 7. Jupyter Notebook Thực Nghiệm Seminar (Task G6 / Issue #14)
+
+Tệp notebook `notebooks/Chroma_Seminar_Experiments.ipynb` được thiết kế ngắn gọn, trực quan, chạy được từ đầu đến cuối và lưu sẵn đầy đủ kết quả bảng/hình, dùng làm **minh chứng thực nghiệm trực tiếp cho 24 slide bài giảng Seminar**:
+
+### 7.1 Cài đặt môi trường chạy Notebook
+
+```powershell
+pip install -r requirements-notebook.txt
+```
+
+### 7.2 Khởi chạy Jupyter
+
+```powershell
+jupyter lab
+# hoặc
+jupyter notebook
+```
+Sau đó mở tệp `notebooks/Chroma_Seminar_Experiments.ipynb` và chọn **Kernel -> Restart Kernel and Run All Cells** (hoặc xem trực tiếp kết quả đã được chạy sẵn).
+
+### 7.3 Tái lập hoặc chạy lại tự động từ dòng lệnh
+
+```powershell
+python scripts/build_notebook.py
+```
+
+### 7.4 Bản đồ liên kết 5 phần thực nghiệm với Slide bài giảng:
+1. **Thí nghiệm 1 (Slide 15–16):** Truy vấn vector mẫu $a, b, c, q$ trên mặt phẳng và khảo sát phép lọc siêu dữ liệu (`where={"topic": "Y"}`).
+2. **Thí nghiệm 2 (Slide 5–6, 8–9, 17):** Trích xuất vector embedding 384D cho 114 đoạn tài liệu CNTT tiếng Việt và quản lý lưu trữ trong Chroma.
+3. **Thí nghiệm 3 (Slide 3–4):** Đối sánh tìm kiếm ngữ nghĩa (Chroma) vs tìm kiếm từ khóa (BM25) trên 3 câu hỏi dev, phân tích case `q_001`.
+4. **Thí nghiệm 4 (Slide 11–13, 19):** Đối chiếu chỉ mục đồ thị HNSW của Chroma với phép tìm kiếm cosine chính xác vét cạn (Exact Cosine trong RAM), đo chỉ số ANN Recall@5.
+5. **Thí nghiệm 5 (Slide 19–20):** Quy trình đánh giá khoa học, candidate review pool (105 nhãn pending), cơ chế Verified-Label Gate và phân tích định tính truy vấn unanswerable `q_030`.
+
+---
+
+## 8. Cấu trúc thư mục dự án
 
 ```text
 PatternRecognition_Seminar/
 ├── .streamlit/
 │   └── config.toml              # Cấu hình Dark Theme Streamlit chuẩn máy chiếu
 ├── app.py                       # Ứng dụng Streamlit: Chroma Semantic Search Lab
+├── notebooks/
+│   └── Chroma_Seminar_Experiments.ipynb # Jupyter Notebook 5 phần thực nghiệm theo slide
 ├── data/
 │   ├── corpus/
 │   │   ├── documents.jsonl      # 114 đoạn tài liệu tiếng Việt (6 chủ đề)
@@ -228,6 +266,7 @@ PatternRecognition_Seminar/
 │   ├── run_evaluation.py        # CLI chạy đánh giá truy hồi và kiểm tra cổng gate
 │   ├── verify_demo_acceptance.py# Tự động hóa kiểm chứng 4 tiêu chuẩn acceptance demo G4+G5
 │   ├── diagnose_q001.py         # Chẩn đoán truy vấn q_001 và thử nghiệm giả thuyết dev
+│   ├── build_notebook.py        # Tự động tạo và thực thi tuần tự Jupyter Notebook
 │   ├── validate_dataset.py      # Validator kiểm tra toàn vẹn dữ liệu G1
 │   ├── smoke_chroma.py          # Smoke test G0
 │   └── verify_persistence.py    # Kiểm chứng persistence G0 (2 processes)
@@ -242,6 +281,7 @@ PatternRecognition_Seminar/
 │   ├── g5-demo.md               # Báo cáo nghiệm thu ứng dụng Streamlit Lab G4+G5
 │   └── ui-retrieval-audit.md    # Báo cáo cải tiến UI/UX và chẩn đoán truy hồi Issue #12
 ├── .gitignore                   # Loại trừ .venv, chroma_db, model weights, cache
-├── requirements.txt             # Danh sách dependencies đã kiểm tra
+├── requirements.txt             # Danh sách dependencies cốt lõi đã kiểm tra
+├── requirements-notebook.txt    # Danh sách dependencies bổ sung cho Jupyter & Matplotlib
 └── README.md                    # Hướng dẫn thiết lập và thực thi dự án
 ```
