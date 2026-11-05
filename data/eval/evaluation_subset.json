@@ -1,0 +1,115 @@
+{
+  "subset_name": "g3_fixed_test_12",
+  "description": "Fixed 12 test queries subset for reproducible retrieval evaluation in Task G3",
+  "created_at": "2026-11-05",
+  "total_queries": 12,
+  "answerable_queries": 11,
+  "unanswerable_queries": 1,
+  "category_counts": {
+    "semantic_paraphrase": 4,
+    "direct_technical": 2,
+    "ambiguous_confusable": 3,
+    "exact_match": 2,
+    "unanswerable": 1
+  },
+  "query_ids": [
+    "q_002",
+    "q_003",
+    "q_006",
+    "q_010",
+    "q_013",
+    "q_016",
+    "q_020",
+    "q_021",
+    "q_024",
+    "q_026",
+    "q_028",
+    "q_030"
+  ],
+  "queries": [
+    {
+      "query_id": "q_002",
+      "query": "cách giải quyết khi mô hình học máy thuộc lòng dữ liệu huấn luyện và dự đoán kém trên thực tế",
+      "category": "semantic_paraphrase",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_003",
+      "query": "giải pháp tăng tốc độ tìm kiếm bản ghi trong bảng cơ sở dữ liệu hàng triệu dòng",
+      "category": "semantic_paraphrase",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_006",
+      "query": "cơ chế giúp mô hình dịch máy hiểu được mối liên hệ giữa các từ đứng cách xa nhau trong câu dài",
+      "category": "semantic_paraphrase",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_010",
+      "query": "kỹ thuật tối ưu bộ nhớ để chạy các mô hình AI ngôn ngữ lớn trên máy tính cá nhân hoặc điện thoại",
+      "category": "semantic_paraphrase",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_013",
+      "query": "thuộc tính ACID và tính bền vững của giao dịch cơ sở dữ liệu quan hệ",
+      "category": "direct_technical",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_016",
+      "query": "cơ sở dữ liệu vector và thuật toán tìm kiếm láng giềng gần đúng HNSW",
+      "category": "direct_technical",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_020",
+      "query": "phân biệt bài toán phân đoạn ngữ nghĩa và phân đoạn cá thể trong thị giác máy tính",
+      "category": "ambiguous_confusable",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_021",
+      "query": "so sánh giao thức truyền tải TCP và UDP trong mạng máy tính",
+      "category": "ambiguous_confusable",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_024",
+      "query": "so sánh mã hóa đối xứng AES và mã hóa bất đối xứng RSA",
+      "category": "ambiguous_confusable",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_026",
+      "query": "chỉ số IoU và thuật toán Non-Maximum Suppression NMS",
+      "category": "exact_match",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_028",
+      "query": "cơ chế MVCC Multi-Version Concurrency Control PostgreSQL",
+      "category": "exact_match",
+      "split": "test",
+      "is_unanswerable": false
+    },
+    {
+      "query_id": "q_030",
+      "query": "thuật toán đồng thuận Proof of Stake và xử lý phân nhánh blockchain Ethereum",
+      "category": "unanswerable",
+      "split": "test",
+      "is_unanswerable": true
+    }
+  ]
+}

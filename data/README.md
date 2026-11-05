@@ -14,7 +14,9 @@ data/
 ├── eval/
 │   ├── queries.jsonl            # 32 câu truy vấn đánh giá (dev/test split)
 │   ├── qrels_draft.jsonl        # 86 nhãn tương quan dự thảo (0, 1, 2)
-│   └── label_review.csv         # Bảng tổng hợp hỗ trợ người kiểm duyệt rà nhãn
+│   ├── label_review.csv         # Bảng tổng hợp hỗ trợ người kiểm duyệt rà nhãn G1
+│   ├── evaluation_subset.json   # 12 câu truy vấn test cố định phục vụ benchmark G3
+│   └── review_pool.csv          # 105 cặp ứng viên pooled (Chroma + BM25 + Draft) chờ kiểm duyệt G3
 ├── smoke_documents.json         # Tập 16 tài liệu thử nghiệm G0 (giữ nguyên độc lập)
 └── README.md                    # Tài liệu đặc tả cấu trúc và quy ước dữ liệu
 ```
@@ -134,3 +136,40 @@ Bộ validator kiểm tra toàn diện:
 - Tính hợp lệ của liên kết khóa ngoại (`source_id` trong documents phải tồn tại trong sources; `doc_id` và `query_id` trong qrels phải tồn tại trong corpus).
 - Không có đoạn văn hoặc câu hỏi rỗng hoặc trùng lặp nguyên văn.
 - Tính nhất quán của cờ `is_unanswerable` (không gán nhãn dương tính cho câu hỏi out-of-scope).
+
+---
+
+## 5. Tập Đánh Giá Cố Định & Candidate Pool G3
+
+### 5.1 Tập truy vấn đánh giá cố định: `data/eval/evaluation_subset.json`
+Được cố định trước khi thực hiện đánh giá xếp hạng nhằm đảm bảo tính khách quan (tránh thiên kiến chọn câu hỏi):
+- Gồm đúng **12 test queries** đại diện cho 5 thể loại:
+  - 4 câu `semantic_paraphrase`: `q_002`, `q_003`, `q_006`, `q_010`
+  - 2 câu `direct_technical`: `q_013`, `q_016`
+  - 3 câu `ambiguous_confusable`: `q_020`, `q_021`, `q_024`
+  - 2 câu `exact_match`: `q_026`, `q_028`
+  - 1 câu `unanswerable`: `q_030`
+- Toàn bộ đều thuộc `split: test`. Các câu `dev` được giữ riêng để phục vụ debug.
+
+### 5.2 Bảng Candidate Review Pool: `data/eval/review_pool.csv`
+Tạo bởi lệnh `python scripts/prepare_eval_pool.py`, hợp nhất:
+1. Top-5 ứng viên của Chroma Semantic Search.
+2. Top-5 ứng viên của Vietnamese BM25.
+3. Các ứng viên đã có trong nhãn dự thảo `qrels_draft.jsonl`.
+
+Tổng cộng có **105 cặp query-document** độc nhất cần kiểm duyệt.
+Cấu trúc bảng (UTF-8 with BOM):
+- `query_id`, `query_text`, `category`, `split`, `is_unanswerable`
+- `doc_id`, `doc_title`, `doc_text`
+- `chroma_rank`: Thứ hạng Top-5 từ Chroma (nếu có)
+- `bm25_rank`: Thứ hạng Top-5 từ BM25 (nếu có)
+- `proposed_relevance`: Nhãn dự thảo ban đầu (0/1/2 hoặc trống nếu chưa đánh giá)
+- `proposed_note`: Ghi chú từ nhãn dự thảo
+- `verified_relevance`: **Để trống hoàn toàn** cho người kiểm duyệt điền {0, 1, 2}
+- `review_status`: Khởi tạo mặc định là `pending` (tuyệt đối không tự động chuyển `verified`)
+
+### 5.3 Cơ chế Verified-Label Gate
+Để xuất báo cáo benchmark chính thức (`python scripts/run_evaluation.py --official`), hệ thống yêu cầu:
+- Toàn bộ các dòng trong pool của các câu hỏi được đánh giá phải có `verified_relevance` thuộc `{0, 1, 2}` và `review_status == 'verified'`.
+- Nếu còn bất kỳ nhãn nào ở trạng thái `pending`, hệ thống sẽ **từ chối xuất kết quả official** và báo rõ số nhãn còn thiếu, ngăn chặn việc sử dụng nhãn AI chưa kiểm chứng làm ground truth khoa học.
+- Câu hỏi unanswerable (`q_030`) được phân tích định tính riêng biệt, không đưa vào trung bình của các câu hỏi answerable.
