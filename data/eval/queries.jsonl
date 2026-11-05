@@ -1,0 +1,32 @@
+{"query_id": "q_001", "query": "làm thế nào để máy tính tự động tìm ra các vật thể và vị trí của chúng trong một bức ảnh?", "category": "semantic_paraphrase", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_002", "query": "cách giải quyết khi mô hình học máy thuộc lòng dữ liệu huấn luyện và dự đoán kém trên thực tế", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_003", "query": "giải pháp tăng tốc độ tìm kiếm bản ghi trong bảng cơ sở dữ liệu hàng triệu dòng", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_004", "query": "thuật toán tìm đường đi ngắn nhất giữa hai địa điểm trên bản đồ giao thông", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_005", "query": "làm sao để ngăn chặn người dùng nhập mã độc vào ô tìm kiếm nhằm phá hoại cơ sở dữ liệu web", "category": "semantic_paraphrase", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_006", "query": "cơ chế giúp mô hình dịch máy hiểu được mối liên hệ giữa các từ đứng cách xa nhau trong câu dài", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_007", "query": "phương pháp biến đổi ảnh chụp như xoay lật để làm giàu dữ liệu huấn luyện thị giác", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_008", "query": "cách đo lường độ chính xác của hệ thống chẩn đoán bệnh khi số người mắc bệnh rất hiếm", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_009", "query": "làm thế nào để hai máy tính trên Internet bắt đầu phiên truyền tải dữ liệu mà không bị thất lạc gói tin", "category": "semantic_paraphrase", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_010", "query": "kỹ thuật tối ưu bộ nhớ để chạy các mô hình AI ngôn ngữ lớn trên máy tính cá nhân hoặc điện thoại", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_011", "query": "cơ chế lưu trữ tạm trên bộ nhớ RAM giúp website chịu tải hàng triệu lượt truy cập mỗi phút", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
+{"query_id": "q_012", "query": "nguyên lý hoạt động và kiến trúc của mạng nơ-ron tích chập CNN", "category": "direct_technical", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_013", "query": "thuộc tính ACID và tính bền vững của giao dịch cơ sở dữ liệu quan hệ", "category": "direct_technical", "split": "test", "is_unanswerable": false}
+{"query_id": "q_014", "query": "thuật toán sắp xếp nhanh QuickSort và phương pháp phân hoạch mảng", "category": "direct_technical", "split": "test", "is_unanswerable": false}
+{"query_id": "q_015", "query": "cơ chế chú ý đa đầu Multi-Head Attention trong kiến trúc Transformer", "category": "direct_technical", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_016", "query": "cơ sở dữ liệu vector và thuật toán tìm kiếm láng giềng gần đúng HNSW", "category": "direct_technical", "split": "test", "is_unanswerable": false}
+{"query_id": "q_017", "query": "quy trình phân giải tên miền DNS và các loại máy chủ trong hệ thống phân cấp", "category": "direct_technical", "split": "test", "is_unanswerable": false}
+{"query_id": "q_018", "query": "thuật toán quy hoạch động giải bài toán cái túi Knapsack", "category": "direct_technical", "split": "test", "is_unanswerable": false}
+{"query_id": "q_019", "query": "sự khác biệt giữa điều chuẩn L1 Lasso và điều chuẩn L2 Ridge", "category": "ambiguous_confusable", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_020", "query": "phân biệt bài toán phân đoạn ngữ nghĩa và phân đoạn cá thể trong thị giác máy tính", "category": "ambiguous_confusable", "split": "test", "is_unanswerable": false}
+{"query_id": "q_021", "query": "so sánh giao thức truyền tải TCP và UDP trong mạng máy tính", "category": "ambiguous_confusable", "split": "test", "is_unanswerable": false}
+{"query_id": "q_022", "query": "sự khác nhau giữa chỉ mục B-Tree và chỉ mục Hash trong cơ sở dữ liệu", "category": "ambiguous_confusable", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_023", "query": "phân biệt mô hình học kết hợp Bagging và Boosting", "category": "ambiguous_confusable", "split": "test", "is_unanswerable": false}
+{"query_id": "q_024", "query": "so sánh mã hóa đối xứng AES và mã hóa bất đối xứng RSA", "category": "ambiguous_confusable", "split": "test", "is_unanswerable": false}
+{"query_id": "q_025", "query": "cấu trúc token JWT header payload signature", "category": "exact_match", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_026", "query": "chỉ số IoU và thuật toán Non-Maximum Suppression NMS", "category": "exact_match", "split": "test", "is_unanswerable": false}
+{"query_id": "q_027", "query": "kỹ thuật SMOTE Synthetic Minority Over-sampling Technique", "category": "exact_match", "split": "test", "is_unanswerable": false}
+{"query_id": "q_028", "query": "cơ chế MVCC Multi-Version Concurrency Control PostgreSQL", "category": "exact_match", "split": "test", "is_unanswerable": false}
+{"query_id": "q_029", "query": "nguyên lý chồng chập lượng tử và cổng logic Hadamard trong máy tính lượng tử", "category": "unanswerable", "split": "dev", "is_unanswerable": true}
+{"query_id": "q_030", "query": "thuật toán đồng thuận Proof of Stake và xử lý phân nhánh blockchain Ethereum", "category": "unanswerable", "split": "test", "is_unanswerable": true}
+{"query_id": "q_031", "query": "kỹ thuật biên dịch mã trung gian bytecode LLVM và phân tích cú pháp AST", "category": "unanswerable", "split": "test", "is_unanswerable": true}
+{"query_id": "q_032", "query": "mô hình thiết kế vi dịch vụ Saga Pattern điều phối giao dịch phân tán qua Kafka", "category": "unanswerable", "split": "test", "is_unanswerable": true}

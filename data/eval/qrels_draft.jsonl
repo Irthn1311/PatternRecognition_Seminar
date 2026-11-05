@@ -1,0 +1,86 @@
+{"query_id": "q_001", "doc_id": "cv_010", "relevance": 2, "label_status": "proposed", "note": "Faster R-CNN định vị hộp bao và phân loại vật thể qua mạng đề xuất vùng RPN"}
+{"query_id": "q_001", "doc_id": "cv_011", "relevance": 2, "label_status": "proposed", "note": "YOLO dự đoán đồng thời tọa độ hộp bao và nhãn vật thể trên lưới ô vuông"}
+{"query_id": "q_001", "doc_id": "cv_009", "relevance": 1, "label_status": "proposed", "note": "Bài toán phân loại ảnh tổng thể, liên quan nhưng chưa có định vị hộp bao"}
+{"query_id": "q_001", "doc_id": "cv_012", "relevance": 1, "label_status": "proposed", "note": "Thuật toán IoU và NMS hỗ trợ tinh chỉnh hộp bao sau khi phát hiện"}
+{"query_id": "q_002", "doc_id": "ml_015", "relevance": 2, "label_status": "proposed", "note": "Định nghĩa hiện tượng quá khớp và tổng hợp các giải pháp khắc phục"}
+{"query_id": "q_002", "doc_id": "ml_004", "relevance": 2, "label_status": "proposed", "note": "Kỹ thuật điều chuẩn L1 Lasso hạn chế quá khớp và chọn lọc đặc trưng"}
+{"query_id": "q_002", "doc_id": "ml_005", "relevance": 2, "label_status": "proposed", "note": "Kỹ thuật điều chuẩn L2 Ridge suy giảm trọng số ngăn quá khớp"}
+{"query_id": "q_002", "doc_id": "ml_014", "relevance": 1, "label_status": "proposed", "note": "Đánh đổi độ chệch và phương sai giải thích nguyên nhân gây quá khớp"}
+{"query_id": "q_002", "doc_id": "dl_007", "relevance": 1, "label_status": "proposed", "note": "Kỹ thuật Dropout điều chuẩn chống quá khớp trong học sâu"}
+{"query_id": "q_003", "doc_id": "db_003", "relevance": 2, "label_status": "proposed", "note": "Chỉ mục B+Tree tối ưu tốc độ tìm kiếm khóa và quét khoảng với độ phức tạp O(log N)"}
+{"query_id": "q_003", "doc_id": "db_004", "relevance": 2, "label_status": "proposed", "note": "Chỉ mục băm Hash Index tăng tốc tìm kiếm bằng chính xác với thời gian O(1)"}
+{"query_id": "q_003", "doc_id": "db_012", "relevance": 1, "label_status": "proposed", "note": "Bộ tối ưu hóa kế hoạch thực thi câu truy vấn index scan"}
+{"query_id": "q_003", "doc_id": "db_006", "relevance": 1, "label_status": "proposed", "note": "Kỹ thuật phân vùng bảng cắt tỉa partition tăng tốc tìm kiếm"}
+{"query_id": "q_004", "doc_id": "algo_010", "relevance": 2, "label_status": "proposed", "note": "Thuật toán Dijkstra tìm đường đi ngắn nhất đồ thị trọng số không âm"}
+{"query_id": "q_004", "doc_id": "algo_012", "relevance": 1, "label_status": "proposed", "note": "Thuật toán Floyd-Warshall tìm đường đi ngắn nhất mọi cặp đỉnh"}
+{"query_id": "q_004", "doc_id": "algo_008", "relevance": 1, "label_status": "proposed", "note": "Duyệt BFS tìm đường đi ngắn nhất trên đồ thị không trọng số"}
+{"query_id": "q_005", "doc_id": "net_011", "relevance": 2, "label_status": "proposed", "note": "Lỗ hổng SQL Injection và phòng chống bằng câu lệnh tham số hóa Prepared Statements"}
+{"query_id": "q_005", "doc_id": "net_012", "relevance": 1, "label_status": "proposed", "note": "Lỗ hổng XSS chèn mã độc vào web nhưng ở phía trình duyệt client"}
+{"query_id": "q_005", "doc_id": "net_010", "relevance": 1, "label_status": "proposed", "note": "Tường lửa kiểm soát gói tin mạng nhưng không chống được mã độc tầng ứng dụng"}
+{"query_id": "q_006", "doc_id": "dl_013", "relevance": 2, "label_status": "proposed", "note": "Cơ chế tự chú ý Self-Attention tính quan hệ ngữ cảnh giữa mọi từ trong câu"}
+{"query_id": "q_006", "doc_id": "dl_014", "relevance": 2, "label_status": "proposed", "note": "Multi-Head Attention trong Transformer theo dõi quan hệ ngữ pháp đa chiều"}
+{"query_id": "q_006", "doc_id": "dl_011", "relevance": 1, "label_status": "proposed", "note": "Kiến trúc LSTM với cell state hỗ trợ chuỗi dài hơn RNN truyền thống"}
+{"query_id": "q_006", "doc_id": "dl_010", "relevance": 0, "label_status": "proposed", "note": "RNN truyền thống bị triệt tiêu gradient không xử lý được phụ thuộc xa"}
+{"query_id": "q_007", "doc_id": "cv_016", "relevance": 2, "label_status": "proposed", "note": "Kỹ thuật Data Augmentation xoay lật cắt cúp mở rộng tập dữ liệu huấn luyện"}
+{"query_id": "q_007", "doc_id": "cv_017", "relevance": 1, "label_status": "proposed", "note": "Biến đổi không gian màu và hình thái học ảnh"}
+{"query_id": "q_007", "doc_id": "cv_002", "relevance": 0, "label_status": "proposed", "note": "Tầng gộp Pooling trong mạng CNN, không phải biến đổi ảnh đầu vào"}
+{"query_id": "q_008", "doc_id": "ml_017", "relevance": 2, "label_status": "proposed", "note": "Chỉ số Precision, Recall và F1-Score đánh giá hiệu quả trên dữ liệu mất cân bằng"}
+{"query_id": "q_008", "doc_id": "ml_019", "relevance": 2, "label_status": "proposed", "note": "Thuật toán SMOTE cân bằng dữ liệu cho lớp thiểu số chẩn đoán bệnh hiếm"}
+{"query_id": "q_008", "doc_id": "ml_018", "relevance": 1, "label_status": "proposed", "note": "Đường cong ROC và diện tích AUC đánh giá phân biệt tổng thể"}
+{"query_id": "q_009", "doc_id": "net_002", "relevance": 2, "label_status": "proposed", "note": "Bắt tay ba bước TCP đồng bộ số thứ tự chuỗi và thiết lập kết nối tin cậy"}
+{"query_id": "q_009", "doc_id": "net_001", "relevance": 1, "label_status": "proposed", "note": "Mô hình OSI và TCP/IP về phân tầng truyền thông"}
+{"query_id": "q_009", "doc_id": "net_004", "relevance": 0, "label_status": "proposed", "note": "Giao thức UDP phi kết nối và chấp nhận thất lạc dữ liệu"}
+{"query_id": "q_010", "doc_id": "dl_019", "relevance": 2, "label_status": "proposed", "note": "Lượng tử hóa mô hình Quantization chuyển đổi trọng số sang INT8/INT4 tiết kiệm RAM"}
+{"query_id": "q_010", "doc_id": "cv_007", "relevance": 1, "label_status": "proposed", "note": "MobileNet tối ưu tính toán cho thiết bị di động nhưng chuyên cho ảnh"}
+{"query_id": "q_010", "doc_id": "dl_018", "relevance": 0, "label_status": "proposed", "note": "Học chuyển giao tái sử dụng mô hình, không trực tiếp tối ưu dung lượng RAM"}
+{"query_id": "q_011", "doc_id": "db_014", "relevance": 2, "label_status": "proposed", "note": "Hệ thống bộ nhớ đệm In-memory Redis lưu trữ RAM tốc độ cực cao"}
+{"query_id": "q_011", "doc_id": "db_019", "relevance": 1, "label_status": "proposed", "note": "Bể kết nối Connection Pooling hỗ trợ xử lý nhiều truy vấn đồng thời"}
+{"query_id": "q_011", "doc_id": "db_001", "relevance": 0, "label_status": "proposed", "note": "Cơ sở dữ liệu quan hệ lưu trên đĩa, không phải cơ chế cache RAM"}
+{"query_id": "q_012", "doc_id": "cv_001", "relevance": 2, "label_status": "proposed", "note": "Tầng tích chập và bộ lọc kernel trong mạng CNN"}
+{"query_id": "q_012", "doc_id": "cv_002", "relevance": 2, "label_status": "proposed", "note": "Tầng gộp Pooling giảm mẫu không gian trong kiến trúc CNN"}
+{"query_id": "q_012", "doc_id": "cv_003", "relevance": 1, "label_status": "proposed", "note": "Khái niệm trường thụ nhận Receptive Field trong CNN"}
+{"query_id": "q_012", "doc_id": "cv_004", "relevance": 1, "label_status": "proposed", "note": "Kiến trúc AlexNet 8 tầng kinh điển"}
+{"query_id": "q_013", "doc_id": "db_002", "relevance": 2, "label_status": "proposed", "note": "Chi tiết thuộc tính ACID và tính bền vững Durability của giao dịch"}
+{"query_id": "q_013", "doc_id": "db_018", "relevance": 2, "label_status": "proposed", "note": "Nhật ký ghi trước WAL bảo đảm tính bền vững Durability khi gặp sự cố"}
+{"query_id": "q_013", "doc_id": "db_008", "relevance": 1, "label_status": "proposed", "note": "Các mức độ cô lập liên quan đến thành phần Isolation trong ACID"}
+{"query_id": "q_014", "doc_id": "algo_003", "relevance": 2, "label_status": "proposed", "note": "Thuật toán QuickSort, kỹ thuật chọn chốt pivot và phân hoạch mảng"}
+{"query_id": "q_014", "doc_id": "algo_004", "relevance": 1, "label_status": "proposed", "note": "Thuật toán MergeSort sắp xếp chia để trị đối sánh"}
+{"query_id": "q_014", "doc_id": "algo_005", "relevance": 1, "label_status": "proposed", "note": "Thuật toán HeapSort sắp xếp tại chỗ"}
+{"query_id": "q_015", "doc_id": "dl_014", "relevance": 2, "label_status": "proposed", "note": "Kiến trúc Multi-Head Attention trong Transformer và chiếu ma trận"}
+{"query_id": "q_015", "doc_id": "dl_013", "relevance": 2, "label_status": "proposed", "note": "Cơ chế tự chú ý Self-Attention với các ma trận Query, Key, Value"}
+{"query_id": "q_015", "doc_id": "dl_015", "relevance": 1, "label_status": "proposed", "note": "Mã hóa vị trí Positional Encoding bổ trợ trong Transformer"}
+{"query_id": "q_016", "doc_id": "db_015", "relevance": 2, "label_status": "proposed", "note": "Khái niệm cơ sở dữ liệu vector và ứng dụng tìm kiếm ngữ nghĩa"}
+{"query_id": "q_016", "doc_id": "db_016", "relevance": 2, "label_status": "proposed", "note": "Thuật toán chỉ mục vector HNSW cấu trúc đồ thị phân cấp"}
+{"query_id": "q_016", "doc_id": "db_017", "relevance": 1, "label_status": "proposed", "note": "Các độ đo khoảng cách Cosine, L2 dùng trong cơ sở dữ liệu vector"}
+{"query_id": "q_017", "doc_id": "net_007", "relevance": 2, "label_status": "proposed", "note": "Quy trình phân giải tên miền DNS và các loại máy chủ phân cấp"}
+{"query_id": "q_017", "doc_id": "net_008", "relevance": 1, "label_status": "proposed", "note": "Địa chỉ IP số học đích mà DNS ánh xạ tới"}
+{"query_id": "q_018", "doc_id": "algo_015", "relevance": 2, "label_status": "proposed", "note": "Phương pháp quy hoạch động giải bài toán cái túi Knapsack 0/1"}
+{"query_id": "q_018", "doc_id": "algo_016", "relevance": 1, "label_status": "proposed", "note": "Bài toán dãy con tăng dài nhất LIS bằng quy hoạch động"}
+{"query_id": "q_019", "doc_id": "ml_004", "relevance": 2, "label_status": "proposed", "note": "Đặc tính điều chuẩn L1 Lasso triệt tiêu trọng số và chọn lọc đặc trưng"}
+{"query_id": "q_019", "doc_id": "ml_005", "relevance": 2, "label_status": "proposed", "note": "Đặc tính điều chuẩn L2 Ridge thu nhỏ trọng số xử lý đa cộng tuyến"}
+{"query_id": "q_019", "doc_id": "ml_015", "relevance": 1, "label_status": "proposed", "note": "Tổng quan các kỹ thuật điều chuẩn trong bài toán quá khớp"}
+{"query_id": "q_020", "doc_id": "cv_013", "relevance": 2, "label_status": "proposed", "note": "Định nghĩa phân đoạn ngữ nghĩa gán nhãn từng pixel không tách cá thể"}
+{"query_id": "q_020", "doc_id": "cv_014", "relevance": 2, "label_status": "proposed", "note": "Định nghĩa phân đoạn cá thể nhận diện mặt nạ riêng cho từng cá thể"}
+{"query_id": "q_020", "doc_id": "cv_015", "relevance": 1, "label_status": "proposed", "note": "Kiến trúc U-Net áp dụng trong phân đoạn ảnh y tế"}
+{"query_id": "q_021", "doc_id": "net_002", "relevance": 2, "label_status": "proposed", "note": "Đặc tính hướng kết nối và tin cậy của giao thức TCP"}
+{"query_id": "q_021", "doc_id": "net_004", "relevance": 2, "label_status": "proposed", "note": "Đặc tính phi kết nối tốc độ cao không đảm bảo của giao thức UDP"}
+{"query_id": "q_021", "doc_id": "net_003", "relevance": 1, "label_status": "proposed", "note": "Cơ chế kiểm soát tắc nghẽn đặc thù của TCP"}
+{"query_id": "q_022", "doc_id": "db_003", "relevance": 2, "label_status": "proposed", "note": "Đặc tính chỉ mục B+Tree tối ưu quét khoảng và tìm kiếm log N"}
+{"query_id": "q_022", "doc_id": "db_004", "relevance": 2, "label_status": "proposed", "note": "Đặc tính chỉ mục Hash tối ưu so khớp bằng O(1) nhưng không hỗ trợ khoảng"}
+{"query_id": "q_023", "doc_id": "ml_007", "relevance": 2, "label_status": "proposed", "note": "Kỹ thuật Bagging trong Rừng ngẫu nhiên huấn luyện độc lập giảm phương sai"}
+{"query_id": "q_023", "doc_id": "ml_008", "relevance": 2, "label_status": "proposed", "note": "Kỹ thuật Boosting trong Gradient Boosting huấn luyện tuần tự sửa sai số"}
+{"query_id": "q_024", "doc_id": "net_015", "relevance": 2, "label_status": "proposed", "note": "So sánh mã hóa đối xứng AES một khóa và mã hóa bất đối xứng RSA cặp khóa"}
+{"query_id": "q_024", "doc_id": "net_016", "relevance": 1, "label_status": "proposed", "note": "Ứng dụng kết hợp AES và RSA trong bắt tay TLS"}
+{"query_id": "q_025", "doc_id": "net_014", "relevance": 2, "label_status": "proposed", "note": "Cấu trúc token JWT gồm ba phần Header, Payload và Signature"}
+{"query_id": "q_025", "doc_id": "net_005", "relevance": 1, "label_status": "proposed", "note": "HTTPS mã hóa bảo vệ token JWT trên đường truyền"}
+{"query_id": "q_026", "doc_id": "cv_012", "relevance": 2, "label_status": "proposed", "note": "Chi tiết chỉ số IoU và thuật toán Non-Maximum Suppression NMS"}
+{"query_id": "q_026", "doc_id": "cv_010", "relevance": 1, "label_status": "proposed", "note": "Faster R-CNN ứng dụng NMS ở tầng đề xuất vùng"}
+{"query_id": "q_026", "doc_id": "cv_011", "relevance": 1, "label_status": "proposed", "note": "YOLO ứng dụng NMS lọc bớt hộp bao dự đoán"}
+{"query_id": "q_027", "doc_id": "ml_019", "relevance": 2, "label_status": "proposed", "note": "Nguyên lý kỹ thuật SMOTE nội suy mẫu nhân tạo cho lớp thiểu số"}
+{"query_id": "q_027", "doc_id": "ml_017", "relevance": 1, "label_status": "proposed", "note": "Chỉ số đánh giá phân loại khi áp dụng SMOTE cân bằng dữ liệu"}
+{"query_id": "q_028", "doc_id": "db_011", "relevance": 2, "label_status": "proposed", "note": "Cơ chế MVCC Multi-Version Concurrency Control trong PostgreSQL"}
+{"query_id": "q_028", "doc_id": "db_008", "relevance": 1, "label_status": "proposed", "note": "Các mức độ cô lập giao dịch dựa trên nền tảng MVCC"}
+{"query_id": "q_029", "doc_id": "algo_001", "relevance": 0, "label_status": "proposed", "note": "Truy vấn ngoài phạm vi: chỉ có độ phức tạp Big-O cổ điển, không có máy tính lượng tử"}
+{"query_id": "q_030", "doc_id": "db_002", "relevance": 0, "label_status": "proposed", "note": "Truy vấn ngoài phạm vi: chỉ có giao dịch ACID truyền thống, không có blockchain Proof of Stake"}
+{"query_id": "q_031", "doc_id": "algo_019", "relevance": 0, "label_status": "proposed", "note": "Truy vấn ngoài phạm vi: chỉ có thuật toán KMP, không có bytecode LLVM hay AST"}
+{"query_id": "q_032", "doc_id": "db_007", "relevance": 0, "label_status": "proposed", "note": "Truy vấn ngoài phạm vi: chỉ có Sharding bảng, không có Saga Pattern hay Kafka"}
