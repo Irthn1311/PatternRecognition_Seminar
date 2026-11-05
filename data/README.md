@@ -108,12 +108,14 @@ Gồm 86 nhãn tương quan do AI đề xuất ban đầu (Draft Labels):
 
 Để hỗ trợ người kiểm duyệt (Reviewer) xem xét và xác nhận nhãn mà không cần viết mã hay dùng công cụ phức tạp, tệp `data/eval/label_review.csv` được tạo sẵn (mã hóa UTF-8 with BOM, mở trực tiếp bằng Microsoft Excel hoặc Google Sheets).
 
+Tệp chứa đầy đủ các trường: `query_id`, `query_text`, `category`, `split`, `doc_id`, `doc_title`, `doc_text`, `source_url`, `relevance`, `label_status`, `note`.
+
 Quy trình kiểm duyệt:
 1. Mở `data/eval/label_review.csv`.
-2. Đọc nội dung `query_text` và `doc_title`.
+2. Đọc nội dung câu hỏi `query_text` và toàn văn đoạn trích `doc_text` (kèm `source_url` tham chiếu nếu cần).
 3. Kiểm tra cột `relevance` (0, 1, 2) và `note`.
 4. Nếu đồng ý, đổi `label_status` từ `proposed` thành `verified`. Nếu không đồng ý, sửa lại giá trị `relevance` phù hợp.
-5. Chỉ những nhãn có trạng thái `verified` mới được đưa vào báo cáo thực nghiệm IR chính thức ở các giai đoạn sau (G2, G3).
+5. **Lưu ý quan trọng về tính đồng bộ:** Việc chỉnh sửa trong tệp CSV **không tự động cập nhật** ngược lại tệp `data/eval/qrels_draft.jsonl`. Trạng thái nhãn chính thức (`verified`) chỉ được đồng bộ và phê duyệt thông qua bước đối soát có kiểm soát trong giai đoạn đánh giá thực nghiệm (G2/G3). Trong phạm vi G1, toàn bộ nhãn trong `qrels_draft.jsonl` được giữ ở trạng thái dự thảo (`proposed`) và không xây dựng annotation UI hay công cụ đồng bộ phức tạp.
 
 ---
 

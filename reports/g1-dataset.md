@@ -46,29 +46,29 @@ Mỗi chủ đề chứa đúng 19 đoạn văn bản độc lập, có ngữ c�
   - `test`: 23 câu (71.9%) — Dành cho đánh giá benchmark độc lập cuối cùng.
 
 ### 2.3 Phân bố 86 nhãn tương quan dự thảo (Draft Qrels)
-- **Điểm 2 (Directly relevant):** 43 nhãn (50.0%) — Trả lời trực tiếp nội dung câu hỏi.
-- **Điểm 1 (Partially relevant):** 34 nhãn (39.5%) — Cung cấp ngữ cảnh nền tảng hoặc kiến thức liên đới.
-- **Điểm 0 (Irrelevant / Distractor):** 9 nhãn (10.5%) — Đoạn văn bản gây nhiễu được đưa vào để kiểm tra khả năng phân biệt âm tính.
+- **Điểm 2 (Directly relevant):** 42 nhãn (48.8%) — Trả lời trực tiếp nội dung câu hỏi.
+- **Điểm 1 (Partially relevant):** 33 nhãn (38.4%) — Cung cấp ngữ cảnh nền tảng hoặc kiến thức liên đới.
+- **Điểm 0 (Irrelevant / Distractor):** 11 nhãn (12.8%) — Đoạn văn bản gây nhiễu được đưa vào để kiểm tra khả năng phân biệt âm tính.
 
 ---
 
 ## 3. Nguồn Gốc và Phân Loại Provenance
 
-Dữ liệu tuân thủ nghiêm ngặt nguyên tắc sở hữu trí tuệ và có thể truy vết:
+Dữ liệu tuân thủ nghiêm ngặt nguyên tắc sở hữu trí tuệ và có thể truy vết, không tự suy đoán giấy phép tái phân phối mở khi chưa được xác minh:
 - **`adapted` (12 nguồn):** Diễn giải và tổng hợp súc tích bằng tiếng Việt từ các tài liệu chuẩn kỹ thuật, bài giảng mở và tài liệu chính thức:
-  - Scikit-learn Consortium Documentation (BSD-3-Clause)
-  - Machine Learning Cơ Bản (Vũ Hữu Tiệp - Open Educational Blog)
-  - Deep Learning Book (Ian Goodfellow, Yoshua Bengio, Aaron Courville - MIT Press)
-  - PyTorch Official Documentation (Linux Foundation / Modified BSD)
-  - Stanford CS231n: Convolutional Neural Networks for Visual Recognition
-  - OpenCV Official Documentation (Apache-2.0)
-  - PostgreSQL Official Documentation (PostgreSQL License)
-  - SQLite Architecture and Query Planner (Public Domain)
-  - Open Data Structures (Pat Morin, Carleton University - CC-BY-2.5-CA)
-  - GeeksforGeeks Algorithms Reference
-  - IETF RFC 9293 (Transmission Control Protocol Specification - Open Standard)
-  - OWASP Top Ten Security Risks (CC-BY-SA 4.0)
-- **`self_composed` (1 nguồn):** Nhóm nghiên cứu Seminar Nhận diện Mẫu (SGU) tự biên soạn tổng hợp các phần đánh đổi kỹ thuật và đối sánh chuyên sâu.
+  - Scikit-learn Consortium Documentation (`BSD-3-Clause`)
+  - Machine Learning Cơ Bản (`All rights reserved by author (license not verified / reference only)`)
+  - Deep Learning Book MIT Press (`Online access only; all rights reserved by MIT Press / authors (reference only)`)
+  - PyTorch Official Documentation (`Modified BSD`)
+  - Stanford CS231n (`Educational course material (license not verified / reference only)`)
+  - OpenCV Official Documentation (`Apache-2.0`)
+  - PostgreSQL Official Documentation (`PostgreSQL License`)
+  - SQLite Architecture and Query Planner (`Public Domain`)
+  - Open Data Structures (`CC-BY-2.5-CA`)
+  - GeeksforGeeks Algorithms Reference (`All rights reserved by GeeksforGeeks (reference only)`)
+  - IETF RFC 9293 TCP Specification (`IETF Trust Open Standard`)
+  - OWASP Top Ten Security Risks (`CC-BY-SA-4.0`)
+- **`self_composed` (1 nguồn):** Nhóm nghiên cứu Seminar Nhận diện Mẫu (SGU) tự biên soạn tổng hợp các phần đánh đổi kỹ thuật và đối sánh chuyên sâu (`Internal seminar educational draft (unlicensed)`).
 - **Không có dữ liệu sao chép nguyên văn vi phạm bản quyền (`quoted`).**
 
 ---
@@ -138,9 +138,9 @@ DATASET VALIDATION SUMMARY & STATISTICS
   - Unanswerable queries: 4
 
 [Draft Qrels]: 86 relevance judgments
-  - Score 0 (Irrelevant/Negative): 9
-  - Score 1 (Partially relevant): 34
-  - Score 2 (Directly relevant): 43
+  - Score 0 (Irrelevant/Negative): 11
+  - Score 1 (Partially relevant): 33
+  - Score 2 (Directly relevant): 42
 
 ------------------------------------------------------------
 ERRORS:   0
@@ -154,11 +154,19 @@ WARNINGS: 0
 
 ## 6. Rà Soát Thủ Công Một Số Cặp Tiêu Biểu & Giới Hạn Cần Lưu Ý
 
-### 6.1 Ghi nhận từ lượt rà soát thủ công:
-1. **Các câu hỏi nhóm `ambiguous_confusable` (như `q_019`, `q_020`, `q_021`, `q_022`):**
+### 6.1 Ghi nhận từ lượt rà soát thủ công & Hiệu chỉnh sau Review:
+1. **Hiệu chỉnh ngữ nghĩa chính xác:**
+   - Cặp `q_008 → ml_019`: Điều chỉnh từ điểm 2 về điểm 0. Câu hỏi `q_008` hỏi về *chỉ số đo lường độ chính xác* khi lớp thiểu số hiếm, trong khi `ml_019` (SMOTE) là kỹ thuật tiền xử lý sinh mẫu cân bằng tập dữ liệu chứ không phải thước đo đánh giá. Tài liệu đánh giá chính xác duy nhất là `ml_017` (Precision, Recall, F1).
+   - Cặp `q_010 → cv_007`: Điều chỉnh từ điểm 1 về điểm 0. MobileNet là kiến trúc tối ưu cho thị giác máy tính trên thiết bị di động, không phải kỹ thuật tối ưu hóa bộ nhớ cho mô hình ngôn ngữ lớn (LLM).
+   - Câu truy vấn `q_009`: Diễn đạt lại thành *"làm thế nào để hai máy tính trên Internet thỏa thuận và thiết lập phiên kết nối tin cậy trước khi truyền dữ liệu"* để tránh ngụ ý không chính xác rằng bắt tay ba bước TCP bảo đảm không bao giờ thất lạc gói tin.
+   - Đoạn `dl_010` (RNN): Bỏ khẳng định tuyệt đối "không thể học", chỉnh thành "gặp khó khăn lớn và suy giảm nghiêm trọng khả năng nắm bắt phụ thuộc xa".
+   - Đoạn `db_016` (HNSW): Bỏ khẳng định O(log N) vô điều kiện, chỉnh thành "đạt độ phức tạp tìm kiếm thực nghiệm xấp xỉ O(log N) trong điều kiện phân phối dữ liệu thuận lợi".
+2. **Cải tiến công cụ kiểm duyệt `label_review.csv`:**
+   - Đã bổ sung toàn văn `doc_text` và `source_url` trực tiếp vào từng dòng của `data/eval/label_review.csv`, giúp người duyệt đọc được cả câu hỏi lẫn nội dung đoạn trích mà không cần tra cứu chéo.
+   - Làm rõ quy ước: việc chỉnh sửa trong file CSV không tự động cập nhật `qrels_draft.jsonl`; trạng thái chính thức (`verified`) sẽ được phê duyệt có kiểm soát tại giai đoạn đánh giá.
+3. **Các câu hỏi nhóm `ambiguous_confusable` (như `q_019`, `q_020`, `q_021`, `q_022`):**
    - Đều có ít nhất 2 passages đạt điểm 2 tương ứng với hai mặt của khái niệm cần phân biệt (ví dụ `q_022` hỏi so sánh B-Tree và Hash Index thì `db_003` và `db_004` đều đạt điểm 2).
-   - Điều này tạo ra thách thức thực tế cho mô hình tìm kiếm phải hồi xuất được cả hai góc nhìn để người dùng có cái nhìn trọn vẹn.
-2. **Các câu hỏi nhóm `unanswerable` (`q_029` - `q_032`):**
+4. **Các câu hỏi nhóm `unanswerable` (`q_029` - `q_032`):**
    - Được kiểm tra kỹ lưỡng để đảm bảo toàn bộ 114 đoạn tài liệu trong corpus hoàn toàn không chứa nội dung trả lời (như máy tính lượng tử, Proof of Stake, LLVM, Saga Pattern).
    - Đã gán nhãn 0 cho một số đoạn văn bản gần gũi về mặt từ khóa tổng quan (distractors) để kiểm tra khả năng không bị ảo giác điểm cao của hệ thống IR.
 

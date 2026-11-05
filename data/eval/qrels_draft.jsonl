@@ -25,13 +25,13 @@
 {"query_id": "q_007", "doc_id": "cv_017", "relevance": 1, "label_status": "proposed", "note": "Biến đổi không gian màu và hình thái học ảnh"}
 {"query_id": "q_007", "doc_id": "cv_002", "relevance": 0, "label_status": "proposed", "note": "Tầng gộp Pooling trong mạng CNN, không phải biến đổi ảnh đầu vào"}
 {"query_id": "q_008", "doc_id": "ml_017", "relevance": 2, "label_status": "proposed", "note": "Chỉ số Precision, Recall và F1-Score đánh giá hiệu quả trên dữ liệu mất cân bằng"}
-{"query_id": "q_008", "doc_id": "ml_019", "relevance": 2, "label_status": "proposed", "note": "Thuật toán SMOTE cân bằng dữ liệu cho lớp thiểu số chẩn đoán bệnh hiếm"}
+{"query_id": "q_008", "doc_id": "ml_019", "relevance": 0, "label_status": "proposed", "note": "Kỹ thuật tiền xử lý sinh mẫu cân bằng dữ liệu huấn luyện, không phải chỉ số đo lường độ chính xác theo yêu cầu câu hỏi"}
 {"query_id": "q_008", "doc_id": "ml_018", "relevance": 1, "label_status": "proposed", "note": "Đường cong ROC và diện tích AUC đánh giá phân biệt tổng thể"}
 {"query_id": "q_009", "doc_id": "net_002", "relevance": 2, "label_status": "proposed", "note": "Bắt tay ba bước TCP đồng bộ số thứ tự chuỗi và thiết lập kết nối tin cậy"}
 {"query_id": "q_009", "doc_id": "net_001", "relevance": 1, "label_status": "proposed", "note": "Mô hình OSI và TCP/IP về phân tầng truyền thông"}
 {"query_id": "q_009", "doc_id": "net_004", "relevance": 0, "label_status": "proposed", "note": "Giao thức UDP phi kết nối và chấp nhận thất lạc dữ liệu"}
 {"query_id": "q_010", "doc_id": "dl_019", "relevance": 2, "label_status": "proposed", "note": "Lượng tử hóa mô hình Quantization chuyển đổi trọng số sang INT8/INT4 tiết kiệm RAM"}
-{"query_id": "q_010", "doc_id": "cv_007", "relevance": 1, "label_status": "proposed", "note": "MobileNet tối ưu tính toán cho thiết bị di động nhưng chuyên cho ảnh"}
+{"query_id": "q_010", "doc_id": "cv_007", "relevance": 0, "label_status": "proposed", "note": "Kiến trúc tích chập tách biệt chiều sâu tối ưu cho thị giác máy tính trên thiết bị di động, không phải kỹ thuật tối ưu bộ nhớ cho mô hình ngôn ngữ lớn (LLM)"}
 {"query_id": "q_010", "doc_id": "dl_018", "relevance": 0, "label_status": "proposed", "note": "Học chuyển giao tái sử dụng mô hình, không trực tiếp tối ưu dung lượng RAM"}
 {"query_id": "q_011", "doc_id": "db_014", "relevance": 2, "label_status": "proposed", "note": "Hệ thống bộ nhớ đệm In-memory Redis lưu trữ RAM tốc độ cực cao"}
 {"query_id": "q_011", "doc_id": "db_019", "relevance": 1, "label_status": "proposed", "note": "Bể kết nối Connection Pooling hỗ trợ xử lý nhiều truy vấn đồng thời"}

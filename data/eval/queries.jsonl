@@ -6,7 +6,7 @@
 {"query_id": "q_006", "query": "cơ chế giúp mô hình dịch máy hiểu được mối liên hệ giữa các từ đứng cách xa nhau trong câu dài", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
 {"query_id": "q_007", "query": "phương pháp biến đổi ảnh chụp như xoay lật để làm giàu dữ liệu huấn luyện thị giác", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
 {"query_id": "q_008", "query": "cách đo lường độ chính xác của hệ thống chẩn đoán bệnh khi số người mắc bệnh rất hiếm", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
-{"query_id": "q_009", "query": "làm thế nào để hai máy tính trên Internet bắt đầu phiên truyền tải dữ liệu mà không bị thất lạc gói tin", "category": "semantic_paraphrase", "split": "dev", "is_unanswerable": false}
+{"query_id": "q_009", "query": "làm thế nào để hai máy tính trên Internet thỏa thuận và thiết lập phiên kết nối tin cậy trước khi truyền dữ liệu", "category": "semantic_paraphrase", "split": "dev", "is_unanswerable": false}
 {"query_id": "q_010", "query": "kỹ thuật tối ưu bộ nhớ để chạy các mô hình AI ngôn ngữ lớn trên máy tính cá nhân hoặc điện thoại", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
 {"query_id": "q_011", "query": "cơ chế lưu trữ tạm trên bộ nhớ RAM giúp website chịu tải hàng triệu lượt truy cập mỗi phút", "category": "semantic_paraphrase", "split": "test", "is_unanswerable": false}
 {"query_id": "q_012", "query": "nguyên lý hoạt động và kiến trúc của mạng nơ-ron tích chập CNN", "category": "direct_technical", "split": "dev", "is_unanswerable": false}
