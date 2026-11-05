@@ -13,7 +13,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import chromadb
 import pandas as pd
@@ -31,7 +31,6 @@ from src.indexer import (
     DEFAULT_DB_PATH,
     DEFAULT_MODEL_NAME,
     CorpusIndexer,
-    load_corpus_documents,
 )
 from src.ui_helpers import (
     DEFAULT_MUTABLE_COLLECTION,
@@ -61,60 +60,85 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for high-contrast presentation styling
+# Custom CSS focused on readability, high contrast, and dark theme presentation
 st.markdown(
     """
     <style>
-    .main-header {
-        font-size: 2.1rem;
+    /* Main title and header styling */
+    .app-main-title {
+        font-size: 2.2rem;
         font-weight: 700;
-        color: #1E3A8A;
-        margin-bottom: 0.2rem;
+        color: #38BDF8;
+        margin-bottom: 0.1rem;
+        letter-spacing: -0.02em;
     }
-    .sub-header {
+    .app-main-subtitle {
         font-size: 1.05rem;
-        color: #4B5563;
+        color: #94A3B8;
         margin-bottom: 1.2rem;
+        font-weight: 400;
     }
-    .metric-card {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-    }
-    .result-card-chroma {
-        background-color: #F0FDF4;
-        border-left: 4px solid #16A34A;
-        border-radius: 6px;
-        padding: 12px;
-        margin-bottom: 12px;
-    }
-    .result-card-bm25 {
-        background-color: #EFF6FF;
-        border-left: 4px solid #2563EB;
-        border-radius: 6px;
-        padding: 12px;
-        margin-bottom: 12px;
-    }
-    .badge {
+    /* Badges with explicit high-contrast colors */
+    .badge-rank-chroma {
         display: inline-block;
+        background-color: #065F46;
+        color: #A7F3D0;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin-right: 6px;
+    }
+    .badge-rank-bm25 {
+        display: inline-block;
+        background-color: #1E3A8A;
+        color: #BFDBFE;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin-right: 6px;
+    }
+    .badge-topic-tag {
+        display: inline-block;
+        background-color: #334155;
+        color: #F1F5F9;
         padding: 2px 8px;
         border-radius: 4px;
         font-size: 0.8rem;
-        font-weight: 600;
-        margin-right: 6px;
+        font-weight: 500;
     }
-    .badge-topic { background-color: #E2E8F0; color: #1E293B; }
-    .badge-rank { background-color: #1E3A8A; color: #FFFFFF; }
+    .metric-score-chroma {
+        color: #34D399;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .metric-score-bm25 {
+        color: #60A5FA;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+    .result-title-text {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        margin-top: 4px;
+        margin-bottom: 6px;
+    }
+    .passage-preview-text {
+        font-size: 0.95rem;
+        color: #CBD5E1;
+        line-height: 1.5;
+        margin-top: 6px;
+    }
     .disclaimer-box {
-        background-color: #FFFBEB;
-        border: 1px solid #FCD34D;
-        border-radius: 6px;
-        padding: 10px 14px;
-        font-size: 0.88rem;
-        color: #92400E;
-        margin-top: 15px;
+        background-color: #1E293B;
+        border-left: 4px solid #F59E0B;
+        border-radius: 4px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        color: #FDE68A;
+        margin-top: 20px;
     }
     </style>
     """,
@@ -123,51 +147,80 @@ st.markdown(
 
 
 def render_sidebar_info() -> None:
-    """Renders persistent configuration and system status in the sidebar."""
+    """Renders compact sidebar with essential status and technical expander."""
     with st.sidebar:
-        st.markdown("### ⚙️ Cấu Hình Hệ Thống")
-        st.markdown(
-            "**Đề tài:** Seminar Nhận diện Mẫu\n\n"
-            "**Embedding:** `multilingual-e5-small` (384d)\n\n"
-            "**Metric:** Cosine Distance (`hnsw:space`)\n\n"
-            "**Lexical:** BM25Okapi (`pyvi` tokenizer)\n\n"
-            "**Corpus chính:** 114 passages (G1)\n\n"
-            "**Device:** CPU"
-        )
-        st.divider()
+        st.markdown("### 🔍 Semantic Search Lab")
+        st.markdown("**Seminar:** Nhận diện Mẫu (Pattern Recognition)")
 
-        st.markdown("### 🛠️ Trạng Thái Chỉ Mục")
+        # Index Status
         try:
             indexer = CorpusIndexer()
             is_consistent, msg, manifest = indexer.check_index_consistency()
             if is_consistent:
-                st.success("✅ Chroma Index: Đã đồng bộ")
-                st.caption(f"Collection: `{DEFAULT_COLLECTION_NAME}` ({manifest.get('document_count')} records)")
+                st.success("✅ **Chroma Index:** Đã đồng bộ (114 records)")
             else:
-                st.error("⚠️ Chroma Index: Chưa đồng bộ / thiếu")
+                st.error("⚠️ **Chroma Index:** Chưa đồng bộ / lỗi")
                 st.caption(msg)
                 st.code("python scripts/build_index.py", language="powershell")
         except Exception as e:
             st.error(f"Lỗi kiểm tra index: {e}")
 
         st.divider()
-        st.markdown(
-            "<small>Phát triển cho Seminar Nhận diện Mẫu — Trường ĐH Sài Gòn (SGU)</small>",
-            unsafe_allow_html=True,
-        )
+
+        # Technical specifications in compact expander
+        with st.expander("🛠️ Chi tiết cấu hình kỹ thuật"):
+            st.markdown(
+                "- **Embedding Model:** `intfloat/multilingual-e5-small`\n"
+                "- **Vector Dim:** 384 dimensions\n"
+                "- **Normalization:** L2 Normalization\n"
+                "- **Prefixes:** `passage: ` vs `query: `\n"
+                "- **Distance Metric:** Cosine Distance\n"
+                "- **Lexical Baseline:** BM25Okapi (`rank_bm25`)\n"
+                "- **Tokenizer:** `pyvi.ViTokenizer` (từ ghép tiếng Việt)\n"
+                "- **Corpus:** 114 passages (6 chủ đề)\n"
+                "- **Inference:** CPU (local)"
+            )
+
+        st.caption("Trường Đại học Sài Gòn (SGU) — Khoa CNTT")
+
+
+def init_session_state() -> None:
+    """Initializes session state keys for persistent search context."""
+    if "has_searched" not in st.session_state:
+        st.session_state["has_searched"] = False
+    if "last_query" not in st.session_state:
+        st.session_state["last_query"] = ""
+    if "last_mode" not in st.session_state:
+        st.session_state["last_mode"] = "Both (Chroma vs BM25)"
+    if "last_top_k" not in st.session_state:
+        st.session_state["last_top_k"] = 5
+    if "last_topic" not in st.session_state:
+        st.session_state["last_topic"] = "All Topics"
+    if "last_chroma_results" not in st.session_state:
+        st.session_state["last_chroma_results"] = []
+    if "last_bm25_results" not in st.session_state:
+        st.session_state["last_bm25_results"] = []
+    if "last_chroma_error" not in st.session_state:
+        st.session_state["last_chroma_error"] = None
+    if "last_bm25_error" not in st.session_state:
+        st.session_state["last_bm25_error"] = None
+    if "query_input_val" not in st.session_state:
+        st.session_state["query_input_val"] = ""
 
 
 def render_tab_semantic_search() -> None:
-    """Tab 1: Interactive semantic search and BM25 comparison."""
+    """Tab 1: Interactive semantic search and BM25 comparison with deliberate submission."""
+    init_session_state()
+
     st.markdown("### 🔍 Tìm Kiếm Ngữ Nghĩa & Đối Sánh BM25")
     st.markdown(
-        "Nhập câu hỏi bằng tiếng Việt để đối sánh kết quả truy hồi giữa **Chroma VectorDB (Dense Semantic)** "
+        "Nhập câu hỏi bằng tiếng Việt để đối sánh kết quả giữa **Chroma VectorDB (Dense Semantic)** "
         "và **BM25 Tiếng Việt (Sparse Lexical)** trên cùng 114 đoạn tài liệu CNTT."
     )
 
-    # Preset sample queries for easy classroom demo
+    # 1. Preset sample queries selector (only populates text, does not auto-submit)
     sample_queries = [
-        "-- Chọn câu hỏi mẫu để demo nhanh --",
+        "-- Chọn câu hỏi mẫu để điền nhanh --",
         "làm thế nào để máy tính tự động tìm ra các vật thể và vị trí của chúng trong một bức ảnh?",
         "cách giải quyết khi mô hình học máy thuộc lòng dữ liệu huấn luyện và dự đoán kém trên thực tế",
         "giải pháp tăng tốc độ tìm kiếm bản ghi trong bảng cơ sở dữ liệu hàng triệu dòng",
@@ -176,14 +229,23 @@ def render_tab_semantic_search() -> None:
         "thuật toán đồng thuận Proof of Stake và xử lý phân nhánh blockchain Ethereum",
     ]
 
-    selected_sample = st.selectbox("📌 Câu hỏi mẫu gợi ý (nhấn để điền nhanh):", sample_queries)
-    default_text = "" if selected_sample == sample_queries[0] else selected_sample
+    def on_sample_change():
+        selected = st.session_state.get("sample_selector_val", "")
+        if selected and selected != sample_queries[0]:
+            st.session_state["query_input_val"] = selected
 
-    # Search controls
-    with st.container():
+    st.selectbox(
+        "📌 Câu hỏi mẫu gợi ý (chọn để điền nội dung vào ô tìm kiếm):",
+        sample_queries,
+        key="sample_selector_val",
+        on_change=on_sample_change,
+    )
+
+    # 2. Search Form (deliberate submission - prevents accidental reruns)
+    with st.form("search_form", clear_on_submit=False):
         query_input = st.text_input(
             "Nhập câu hỏi truy vấn tiếng Việt:",
-            value=default_text,
+            value=st.session_state.get("query_input_val", ""),
             placeholder="Ví dụ: kiến trúc mạng nơ-ron tích chập CNN trích xuất đặc trưng hình ảnh...",
         )
 
@@ -199,143 +261,201 @@ def render_tab_semantic_search() -> None:
         with ctrl_col3:
             topic_filter = st.selectbox("Lọc theo chủ đề (Metadata filter):", STANDARD_TOPICS, index=0)
 
-        search_btn = st.button("🚀 Thực Hiện Tìm Kiếm", type="primary", use_container_width=True)
+        submit_search = st.form_submit_button("🚀 Tìm kiếm", type="primary", use_container_width=True)
 
-    if search_btn or query_input.strip():
+    # 3. Handle deliberate form submission
+    if submit_search:
         q_text = query_input.strip()
         if not q_text:
-            st.warning("⚠️ Vui lòng nhập câu hỏi truy vấn để tìm kiếm.")
-            return
+            st.warning("⚠️ Vui lòng nhập câu hỏi truy vấn trước khi nhấn tìm kiếm.")
+        else:
+            filter_val = None if topic_filter == "All Topics" else topic_filter
 
-        filter_val = None if topic_filter == "All Topics" else topic_filter
+            # Check Chroma index consistency
+            indexer = CorpusIndexer()
+            is_consistent, msg, _ = indexer.check_index_consistency()
 
-        # Check Chroma index consistency before retrieval
-        indexer = CorpusIndexer()
-        is_consistent, msg, _ = indexer.check_index_consistency()
-        if not is_consistent and mode_choice in ["Both (Chroma vs BM25)", "Chroma Semantic Search"]:
-            st.error(
-                f"❌ Không thể thực hiện tìm kiếm Chroma do chỉ mục chưa đồng bộ hoặc bị thiếu:\n\n`{msg}`\n\n"
-                "Vui lòng chạy lệnh sau trên PowerShell trước khi tìm kiếm:"
-            )
-            st.code("python scripts/build_index.py", language="powershell")
-            if mode_choice == "Chroma Semantic Search":
-                return
+            chroma_results: List[Dict[str, Any]] = []
+            bm25_results: List[Dict[str, Any]] = []
+            chroma_error: Optional[str] = None
+            bm25_error: Optional[str] = None
 
-        # Prepare retrievers
-        chroma_results: List[Dict[str, Any]] = []
-        bm25_results: List[Dict[str, Any]] = []
-        chroma_error: Optional[str] = None
-        bm25_error: Optional[str] = None
-
-        # Execute Chroma
-        if mode_choice in ["Both (Chroma vs BM25)", "Chroma Semantic Search"] and is_consistent:
-            try:
-                retriever = get_cached_chroma_retriever()
-                chroma_results = retriever.search(q_text, top_k=top_k, topic=filter_val)
-            except Exception as e:
-                chroma_error = str(e)
-
-        # Execute BM25
-        if mode_choice in ["Both (Chroma vs BM25)", "Vietnamese BM25"]:
-            try:
-                retriever = get_cached_bm25_retriever()
-                bm25_results = retriever.search(q_text, top_k=top_k, topic=filter_val)
-            except Exception as e:
-                bm25_error = str(e)
-
-        # Render results
-        st.divider()
-
-        if mode_choice == "Both (Chroma vs BM25)":
-            col_left, col_right = st.columns(2)
-
-            with col_left:
-                st.markdown("#### 🧠 Chroma Semantic Search (E5 Small)")
-                st.caption("Thang đo: **Cosine Distance** (càng nhỏ càng gần ngữ nghĩa, khoảng [0..2])")
-                if chroma_error:
-                    st.error(f"Lỗi Chroma: {chroma_error}")
-                elif not chroma_results:
-                    st.info("Không có kết quả nào khớp với bộ lọc.")
+            # Execute Chroma
+            if mode_choice in ["Both (Chroma vs BM25)", "Chroma Semantic Search"]:
+                if not is_consistent:
+                    chroma_error = f"Chroma index chưa đồng bộ hoặc bị thiếu ({msg}). Chạy 'python scripts/build_index.py' để sửa."
                 else:
-                    for item in chroma_results:
-                        st.markdown(
-                            f"""
-                            <div class="result-card-chroma">
-                                <span class="badge badge-rank">Hạng {item['rank']}</span>
-                                <span class="badge badge-topic">{item['topic']}</span>
-                                <b>[{item['id']}] {item['title']}</b><br/>
-                                <small style="color: #166534;">📐 Cosine Distance: <b>{item['distance']:.4f}</b></small><br/>
-                                <div style="margin-top: 6px; font-size: 0.92rem; color: #1F2937;">{item['document']}</div>
-                                <div style="margin-top: 4px;"><small style="color: #6B7280;">Nguồn: {item.get('source_url') or 'Nội bộ dự án'}</small></div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
+                    try:
+                        retriever = get_cached_chroma_retriever()
+                        chroma_results = retriever.search(q_text, top_k=top_k, topic=filter_val)
+                    except Exception as e:
+                        chroma_error = str(e)
 
-            with col_right:
-                st.markdown("#### 📖 Vietnamese BM25 Baseline (PyVi)")
-                st.caption("Thang đo: **BM25 Score** (càng lớn càng khớp từ khóa, không giới hạn trên)")
-                if bm25_error:
-                    st.error(f"Lỗi BM25: {bm25_error}")
-                elif not bm25_results:
-                    st.info("Không có kết quả nào khớp với bộ lọc.")
-                else:
-                    for item in bm25_results:
-                        st.markdown(
-                            f"""
-                            <div class="result-card-bm25">
-                                <span class="badge badge-rank">Hạng {item['rank']}</span>
-                                <span class="badge badge-topic">{item['topic']}</span>
-                                <b>[{item['id']}] {item['title']}</b><br/>
-                                <small style="color: #1E40AF;">📊 BM25 Score: <b>{item['score']:.4f}</b></small><br/>
-                                <div style="margin-top: 6px; font-size: 0.92rem; color: #1F2937;">{item['document']}</div>
-                                <div style="margin-top: 4px;"><small style="color: #6B7280;">Nguồn: {item.get('source_url') or 'Nội bộ dự án'}</small></div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
+            # Execute BM25
+            if mode_choice in ["Both (Chroma vs BM25)", "Vietnamese BM25"]:
+                try:
+                    retriever = get_cached_bm25_retriever()
+                    bm25_results = retriever.search(q_text, top_k=top_k, topic=filter_val)
+                except Exception as e:
+                    bm25_error = str(e)
 
+            # Update session state with last search results and parameters
+            st.session_state["has_searched"] = True
+            st.session_state["last_query"] = q_text
+            st.session_state["last_mode"] = mode_choice
+            st.session_state["last_top_k"] = top_k
+            st.session_state["last_topic"] = topic_filter
+            st.session_state["last_chroma_results"] = chroma_results
+            st.session_state["last_bm25_results"] = bm25_results
+            st.session_state["last_chroma_error"] = chroma_error
+            st.session_state["last_bm25_error"] = bm25_error
+
+    # 4. Display Results OR Empty State
+    st.divider()
+
+    if not st.session_state.get("has_searched", False):
+        # Clean informative empty state
+        with st.container(border=True):
+            st.markdown("#### 👋 Chào mừng đến với Chroma Semantic Search Lab!")
             st.markdown(
-                """
-                <div class="disclaimer-box">
-                    💡 <b>Lưu ý quan trọng về độ đo:</b> Khoảng cách Cosine của Chroma và Điểm số BM25 có bản chất toán học 
-                    hoàn toàn khác nhau. Tuyệt đối không quy đổi trực tiếp hoặc gộp chung hai thang đo này thành phần trăm độ tin cậy (% confidence).
-                </div>
-                """,
-                unsafe_allow_html=True,
+                "Để bắt đầu trải nghiệm, bạn có thể:\n\n"
+                "1. Chọn một trong các **câu hỏi mẫu gợi ý** ở trên để tự động điền câu hỏi.\n"
+                "2. Hoặc tự nhập câu hỏi kỹ thuật CNTT bằng tiếng Việt vào ô tìm kiếm.\n"
+                "3. Tùy chỉnh chế độ đối sánh (**Both**, **Chroma**, hoặc **BM25**), số lượng Top-K và bộ lọc chủ đề.\n"
+                "4. Nhấn **'🚀 Tìm kiếm'** để kích hoạt suy luận vector và truy hồi từ khóa."
             )
+            st.caption("Hệ thống sẽ chạy đối sánh song song trên 114 đoạn tài liệu học liệu CNTT.")
+        return
 
-        elif mode_choice == "Chroma Semantic Search":
-            st.markdown("#### 🧠 Kết Quả Chroma Semantic Search")
-            st.caption("Thang đo: Cosine Distance (nhỏ hơn = gần hơn)")
+    # Render persisted search results
+    last_query = st.session_state.get("last_query", "")
+    last_mode = st.session_state.get("last_mode", "Both (Chroma vs BM25)")
+    last_top_k = st.session_state.get("last_top_k", 5)
+    last_topic = st.session_state.get("last_topic", "All Topics")
+    chroma_results = st.session_state.get("last_chroma_results", [])
+    bm25_results = st.session_state.get("last_bm25_results", [])
+    chroma_error = st.session_state.get("last_chroma_error", None)
+    bm25_error = st.session_state.get("last_bm25_error", None)
+
+    st.markdown(
+        f"**Kết quả tìm kiếm cho:** *\"{last_query}\"* &nbsp;|&nbsp; "
+        f"**Top-K:** `{last_top_k}` &nbsp;|&nbsp; "
+        f"**Chủ đề:** `{last_topic}` &nbsp;|&nbsp; "
+        f"**Chế độ:** `{last_mode}`"
+    )
+
+    if last_mode == "Both (Chroma vs BM25)":
+        col_left, col_right = st.columns(2)
+
+        # Left Column: Chroma
+        with col_left:
+            st.markdown("#### 🧠 Chroma Semantic Search (E5 Small)")
+            st.caption("Thang đo: **Cosine Distance** (càng nhỏ càng gần ngữ nghĩa, khoảng [0..2])")
             if chroma_error:
-                st.error(f"Lỗi Chroma: {chroma_error}")
+                st.error(f"❌ Lỗi Chroma: {chroma_error}")
             elif not chroma_results:
-                st.info("Không có kết quả nào khớp với bộ lọc.")
+                st.info("Không tìm thấy tài liệu Chroma nào khớp với bộ lọc.")
             else:
                 for item in chroma_results:
-                    with st.expander(f"Hạng {item['rank']}: [{item['id']}] {item['title']} (Cosine Dist: {item['distance']:.4f})", expanded=True):
-                        st.markdown(f"**Chủ đề:** `{item['topic']}` | **Khoảng cách:** `{item['distance']:.4f}`")
-                        st.write(item["document"])
-                        st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
+                    with st.container(border=True):
+                        # Title is prominent
+                        st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            f'<span class="badge-rank-chroma">Hạng {item["rank"]}</span> '
+                            f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                            f'<span class="metric-score-chroma">📐 Cosine Distance: {item["distance"]:.4f}</span>',
+                            unsafe_allow_html=True,
+                        )
+                        st.caption(f"Mã ID: `{item['id']}`")
+                        # Preview text
+                        preview = item["document"][:200] + ("..." if len(item["document"]) > 200 else "")
+                        st.markdown(f'<div class="passage-preview-text">{preview}</div>', unsafe_allow_html=True)
+                        with st.expander("📖 Xem toàn văn tài liệu & nguồn"):
+                            st.write(item["document"])
+                            st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
 
-        elif mode_choice == "Vietnamese BM25":
-            st.markdown("#### 📖 Kết Quả Vietnamese BM25 Baseline")
-            st.caption("Thang đo: BM25 Score (lớn hơn = khớp từ khóa hơn)")
+        # Right Column: BM25
+        with col_right:
+            st.markdown("#### 📖 Vietnamese BM25 Baseline (PyVi)")
+            st.caption("Thang đo: **BM25 Score** (càng lớn càng khớp từ khóa, không giới hạn trên)")
             if bm25_error:
-                st.error(f"Lỗi BM25: {bm25_error}")
+                st.error(f"❌ Lỗi BM25: {bm25_error}")
             elif not bm25_results:
-                st.info("Không có kết quả nào khớp với bộ lọc.")
+                st.info("Không tìm thấy tài liệu BM25 nào khớp với bộ lọc.")
             else:
                 for item in bm25_results:
-                    with st.expander(f"Hạng {item['rank']}: [{item['id']}] {item['title']} (BM25 Score: {item['score']:.4f})", expanded=True):
-                        st.markdown(f"**Chủ đề:** `{item['topic']}` | **Điểm số:** `{item['score']:.4f}`")
-                        st.write(item["document"])
-                        st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
+                    with st.container(border=True):
+                        # Title is prominent
+                        st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                        st.markdown(
+                            f'<span class="badge-rank-bm25">Hạng {item["rank"]}</span> '
+                            f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                            f'<span class="metric-score-bm25">📊 BM25 Score: {item["score"]:.4f}</span>',
+                            unsafe_allow_html=True,
+                        )
+                        st.caption(f"Mã ID: `{item['id']}`")
+                        # Preview text
+                        preview = item["document"][:200] + ("..." if len(item["document"]) > 200 else "")
+                        st.markdown(f'<div class="passage-preview-text">{preview}</div>', unsafe_allow_html=True)
+                        with st.expander("📖 Xem toàn văn tài liệu & nguồn"):
+                            st.write(item["document"])
+                            st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
+
+        st.markdown(
+            """
+            <div class="disclaimer-box">
+                💡 <b>Lưu ý khoa học về độ đo:</b> Khoảng cách Cosine của Chroma và Điểm số BM25 có bản chất toán học 
+                hoàn toàn khác nhau. Tuyệt đối không quy đổi trực tiếp hoặc gộp chung hai thang đo này thành phần trăm độ tin cậy (% confidence).
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    elif last_mode == "Chroma Semantic Search":
+        st.markdown("#### 🧠 Kết Quả Chroma Semantic Search")
+        st.caption("Thang đo: Cosine Distance (nhỏ hơn = gần ngữ nghĩa hơn)")
+        if chroma_error:
+            st.error(f"❌ Lỗi Chroma: {chroma_error}")
+        elif not chroma_results:
+            st.info("Không tìm thấy tài liệu nào khớp với bộ lọc.")
+        else:
+            for item in chroma_results:
+                with st.container(border=True):
+                    st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<span class="badge-rank-chroma">Hạng {item["rank"]}</span> '
+                        f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                        f'<span class="metric-score-chroma">📐 Cosine Distance: {item["distance"]:.4f}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    st.caption(f"Mã ID: `{item['id']}`")
+                    st.write(item["document"])
+                    st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
+
+    elif last_mode == "Vietnamese BM25":
+        st.markdown("#### 📖 Kết Quả Vietnamese BM25 Baseline")
+        st.caption("Thang đo: BM25 Score (lớn hơn = khớp từ khóa hơn)")
+        if bm25_error:
+            st.error(f"❌ Lỗi BM25: {bm25_error}")
+        elif not bm25_results:
+            st.info("Không tìm thấy tài liệu nào khớp với bộ lọc.")
+        else:
+            for item in bm25_results:
+                with st.container(border=True):
+                    st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<span class="badge-rank-bm25">Hạng {item["rank"]}</span> '
+                        f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                        f'<span class="metric-score-bm25">📊 BM25 Score: {item["score"]:.4f}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    st.caption(f"Mã ID: `{item['id']}`")
+                    st.write(item["document"])
+                    st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
 
 
 def render_tab_collection_explorer() -> None:
-    """Tab 2: Read-only corpus browser + isolated mutable demo collection for live CRUD."""
+    """Tab 2: Read-only corpus browser reading directly from Chroma + isolated mutable demo collection for live CRUD."""
     st.markdown("### 🗄️ Khám Phá & Thao Tác Collection")
 
     tab_official, tab_mutable = st.tabs([
@@ -344,11 +464,11 @@ def render_tab_collection_explorer() -> None:
     ])
 
     # -------------------------------------------------------------------------
-    # Sub-tab 1: Official Corpus Browser (READ-ONLY)
+    # Sub-tab 1: Official Corpus Browser (READ DIRECTLY FROM CHROMA)
     # -------------------------------------------------------------------------
     with tab_official:
         st.markdown("#### Kho Học Liệu Chính Thức (`seminar_corpus_e5`)")
-        st.caption("Kho dữ liệu chuẩn gồm 114 passages học liệu CNTT tiếng Việt (bất biến, chế độ chỉ đọc).")
+        st.caption("Duyệt trực tiếp các bản ghi và metadata được lưu trữ trong Chroma VectorDB (bất biến, chế độ chỉ đọc).")
 
         client = get_cached_chroma_client()
         try:
@@ -462,7 +582,7 @@ def render_tab_collection_explorer() -> None:
                     else:
                         st.info("Không tìm thấy kết quả nào.")
 
-        # ACTION: ADD
+        # ACTION: ADD (Refuses existing IDs)
         elif crud_action == "➕ Thêm Tài Liệu Mới":
             st.markdown("##### Thêm tài liệu vào demo collection:")
             with st.form("add_demo_form", clear_on_submit=True):
@@ -482,10 +602,12 @@ def render_tab_collection_explorer() -> None:
                             )
                             st.success(f"✅ Đã thêm tài liệu `{new_id}` và tự động tính vector embedding E5 thành công!")
                             st.rerun()
+                        except ValueError as ve:
+                            st.error(f"❌ {ve}")
                         except Exception as e:
                             st.error(f"Lỗi thêm tài liệu: {e}")
 
-        # ACTION: UPDATE
+        # ACTION: UPDATE (Requires existing ID)
         elif crud_action == "✏️ Sửa Tài Liệu":
             st.markdown("##### Sửa tài liệu trong demo collection:")
             if not current_demo_docs:
@@ -508,6 +630,8 @@ def render_tab_collection_explorer() -> None:
                             )
                             st.success(f"✅ Đã cập nhật tài liệu `{edit_id}` và tái tính vector embedding tương ứng!")
                             st.rerun()
+                        except ValueError as ve:
+                            st.error(f"❌ {ve}")
                         except Exception as e:
                             st.error(f"Lỗi cập nhật: {e}")
 
@@ -664,9 +788,9 @@ def render_tab_experiments() -> None:
 def main() -> None:
     render_sidebar_info()
 
-    st.markdown('<div class="main-header">Chroma Semantic Search Lab</div>', unsafe_allow_html=True)
+    st.markdown('<div class="app-main-title">Chroma Semantic Search Lab</div>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="sub-header">Phòng thí nghiệm tìm kiếm ngữ nghĩa tiếng Việt với Chroma VectorDB và Multilingual-E5-Small</div>',
+        '<div class="app-main-subtitle">Phòng thí nghiệm tìm kiếm ngữ nghĩa tiếng Việt với Chroma VectorDB và Multilingual-E5-Small</div>',
         unsafe_allow_html=True,
     )
 
