@@ -53,13 +53,17 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
     # Setup Environment
     cells.append(
         nbformat.v4.new_code_cell(
-            "# Thiết lập môi trường và nạp các thư viện cần thiết\n"
             "import os\n"
             "import sys\n"
+            "import warnings\n"
             "from pathlib import Path\n\n"
-            "# Tắt cảnh báo không cần thiết của Hugging Face\n"
-            "os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'\n\n"
-            "# Đặt đường dẫn gốc dự án để nạp các module mã nguồn\n"
+            "# Thiết lập cấu hình môi trường và lọc cảnh báo tiến trình\n"
+            "os.environ['HF_HUB_DISABLE_SYMLINKS_WARNING'] = '1'\n"
+            "os.environ['TOKENIZERS_PARALLELISM'] = 'false'\n"
+            "warnings.filterwarnings('ignore')\n\n"
+            "import transformers\n"
+            "transformers.logging.set_verbosity_error()\n\n"
+            "# Thiết lập đường dẫn gốc dự án để nạp các module mã nguồn\n"
             "PROJECT_ROOT = Path.cwd()\n"
             "if PROJECT_ROOT.name == 'notebooks':\n"
             "    PROJECT_ROOT = PROJECT_ROOT.parent\n"
@@ -67,11 +71,12 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "    sys.path.insert(0, str(PROJECT_ROOT))\n\n"
             "import tempfile\n"
             "import json\n"
+            "import csv\n"
             "import numpy as np\n"
             "import pandas as pd\n"
             "import matplotlib.pyplot as plt\n"
             "import chromadb\n\n"
-            "# Cấu hình giao diện biểu đồ phục vụ trình chiếu\n"
+            "# Định dạng hiển thị biểu đồ Matplotlib\n"
             "plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')\n"
             "plt.rcParams['figure.dpi'] = 110\n"
             "plt.rcParams['font.size'] = 10\n"
@@ -97,8 +102,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# Khởi tạo collection tạm thời và nạp 3 vector mẫu\n"
-            "# Sử dụng ignore_cleanup_errors=True trên Windows để tránh giữ file handle SQLite\n"
+            "# Khởi tạo collection tạm thời cô lập và nạp 3 vector mẫu\n"
             "with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir:\n"
             "    client = chromadb.PersistentClient(path=tmp_dir)\n"
             "    col = client.create_collection(name='demo_3vectors', metadata={'hnsw:space': 'cosine'})\n"
@@ -124,11 +128,8 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "# Tổng hợp bảng kết quả so sánh\n"
             "table_rows = []\n"
             "for did, meta, vec in zip(ids, metas, vectors):\n"
-            "    # Thứ hạng không lọc\n"
             "    rank_unfiltered = res_all['ids'][0].index(did) + 1 if did in res_all['ids'][0] else None\n"
             "    chroma_dist = res_all['distances'][0][rank_unfiltered - 1] if rank_unfiltered else None\n"
-            "    \n"
-            "    # Thứ hạng có lọc\n"
             "    rank_filtered = res_filtered['ids'][0].index(did) + 1 if did in res_filtered['ids'][0] else 'Bị loại'\n"
             "    \n"
             "    table_rows.append({\n"
@@ -148,18 +149,15 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
     cells.append(
         nbformat.v4.new_code_cell(
             "# Trực quan hóa hình học 2D các vector q, a, b, c trên mặt phẳng (x1, x2)\n"
-            "fig, ax = plt.subplots(figsize=(6.5, 5))\n"
+            "fig, ax = plt.subplots(figsize=(6.5, 4.8))\n"
             "ax.axhline(0, color='gray', linestyle='--', linewidth=0.8)\n"
             "ax.axvline(0, color='gray', linestyle='--', linewidth=0.8)\n\n"
-            "# Vẽ cung tròn đơn vị để định hướng góc\n"
             "theta = np.linspace(0, np.pi / 2, 100)\n"
             "ax.plot(np.cos(theta), np.sin(theta), color='lightgray', linestyle=':', label='Đường tròn đơn vị')\n\n"
-            "# Vẽ các vector mũi tên\n"
             "colors = {'q': '#DC2626', 'a': '#16A34A', 'b': '#2563EB', 'c': '#D97706'}\n"
             "vec_coords = {'q': [1.0, 0.0], 'a': [1.0, 0.0], 'b': [0.9, 0.1], 'c': [0.0, 1.0]}\n\n"
             "for label, coord in vec_coords.items():\n"
             "    dx, dy = coord[0], coord[1]\n"
-            "    # Vẽ vector b với độ dài chuẩn hóa để trực quan góc\n"
             "    norm = np.hypot(dx, dy)\n"
             "    dx_norm, dy_norm = dx / norm, dy / norm\n"
             "    ax.quiver(0, 0, dx_norm, dy_norm, angles='xy', scale_units='xy', scale=1,\n"
@@ -185,8 +183,8 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "tiếp theo là vector $b$ (khoảng cách 0.0062) và vector $c$ (vuông góc, khoảng cách 1.0000) xếp hạng 3.\n"
             "2. Khi áp dụng bộ lọc `topic = 'Y'`, Chroma tiến hành lọc siêu dữ liệu trước (pre-filtering), "
             "loại bỏ toàn bộ các tài liệu thuộc topic X. Do đó, vector $c$ trở thành kết quả duy nhất ở hạng 1.\n"
-            "3. Khoảng cách cosine do Chroma trả về trùng khớp hoàn toàn với kết quả tính toán đại số tuyến tính của NumPy. "
-            "Phép lọc siêu dữ liệu chỉ thay đổi tập tài liệu hợp lệ được xem xét, không làm thay đổi định nghĩa khoảng cách."
+            "3. Khoảng cách cosine do Chroma trả về trùng khớp với kết quả tính toán đại số tuyến tính của NumPy. "
+            "Phép lọc siêu dữ liệu làm thay đổi tập tài liệu hợp lệ được xem xét, không làm thay đổi định nghĩa khoảng cách."
         )
     )
 
@@ -204,7 +202,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# 1. Đọc corpus và thống kê phân bố theo chủ đề\n"
+            "# Đọc corpus và thống kê phân bố theo chủ đề\n"
             "docs = []\n"
             "with open(PROJECT_ROOT / 'data/corpus/documents.jsonl', 'r', encoding='utf-8') as f:\n"
             "    for line in f:\n"
@@ -213,8 +211,8 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "df_corpus = pd.DataFrame(docs)\n"
             "topic_counts = df_corpus['topic'].value_counts().reset_index()\n"
             "topic_counts.columns = ['Chủ đề CNTT', 'Số đoạn văn (Passages)']\n\n"
-            "# 2. Vẽ biểu đồ phân bố chủ đề\n"
-            "fig, ax = plt.subplots(figsize=(8, 3.8))\n"
+            "# Vẽ biểu đồ phân bố chủ đề\n"
+            "fig, ax = plt.subplots(figsize=(8, 3.6))\n"
             "bars = ax.barh(topic_counts['Chủ đề CNTT'], topic_counts['Số đoạn văn (Passages)'], color='#0284C7', height=0.6)\n"
             "ax.set_xlabel('Số lượng đoạn văn bản')\n"
             "ax.set_title('Phân bố 114 tài liệu tiếng Việt theo 6 nhóm chủ đề CNTT', fontsize=12, fontweight='bold')\n"
@@ -234,7 +232,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "client = chromadb.PersistentClient(path=str(PROJECT_ROOT / 'chroma_db'))\n"
             "col = client.get_collection(name='seminar_corpus_e5')\n"
             "total_records = col.count()\n\n"
-            "# Lấy tài liệu db_003 (Chỉ mục B-Tree)\n"
+            "# Lấy tài liệu mẫu db_003 (Chỉ mục B-Tree)\n"
             "sample_record = col.get(ids=['db_003'], include=['embeddings', 'documents', 'metadatas'])\n"
             "sample_meta = sample_record['metadatas'][0]\n"
             "sample_vec = np.array(sample_record['embeddings'][0])\n\n"
@@ -244,8 +242,8 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "print(f'Mã tài liệu mẫu:     db_003')\n"
             "print(f'Tiêu đề:             {sample_meta.get(\"title\")}')\n"
             "print(f'Chủ đề:              {sample_meta.get(\"topic\")}')\n"
-            "print(f'Độ dài vector:       {len(sample_vec)} chiều (Dimensions)')\n"
-            "print(f'Chuẩn L2 vector:     {np.linalg.norm(sample_vec):.6f} (Đã chuẩn hóa L2)')\n"
+            "print(f'Số chiều vector:     {len(sample_vec)} chiều (Dimensions)')\n"
+            "print(f'Chuẩn L2 vector:     {np.linalg.norm(sample_vec):.6f} (Độ dài vector đơn vị)')\n"
             "print(f'Mẫu 6 giá trị đầu:   {np.round(sample_vec[:6], 4)}')\n"
             "print(f'Đoạn văn bản trích:  \"{sample_record[\"documents\"][0][:130]}...\"')"
         )
@@ -254,7 +252,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
     cells.append(
         nbformat.v4.new_markdown_cell(
             "**Nhận xét:**\n"
-            "1. Kho tài liệu 114 đoạn được phân bố cân bằng tuyệt đối (19 đoạn mỗi chủ đề) trên 6 lĩnh vực CNTT quan trọng.\n"
+            "1. Kho tài liệu 114 đoạn được phân bố cân bằng (19 đoạn mỗi chủ đề) trên 6 lĩnh vực CNTT quan trọng.\n"
             "2. Mô hình `multilingual-e5-small` nén thông tin ngữ nghĩa của đoạn văn bản thành một vector 384 chiều đã được chuẩn hóa L2 (độ dài vector bằng 1.0).\n"
             "3. Phân định rạch ròi kiến trúc: **Mô hình E5 đảm nhiệm việc biểu diễn ngữ nghĩa dạng vector, còn Chroma đóng vai trò cơ sở dữ liệu chuyên dụng để quản lý khóa ID, lưu trữ siêu dữ liệu và tối ưu hóa việc tìm kiếm láng giềng gần nhất trên đĩa cứng.**"
         )
@@ -277,16 +275,21 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# Nạp module truy xuất Chroma và BM25 đã xây dựng trong dự án\n"
+            "# Nạp module truy xuất Chroma và BM25 từ thư mục mã nguồn dự án\n"
             "from src.chroma_search import ChromaRetriever\n"
             "from src.bm25_search import BM25Retriever\n\n"
             "chroma_retriever = ChromaRetriever(db_path=str(PROJECT_ROOT / 'chroma_db'))\n"
             "bm25_retriever = BM25Retriever(data_path=str(PROJECT_ROOT / 'data/corpus/documents.jsonl'))\n\n"
-            "dev_queries = [\n"
-            "    ('q_001', 'làm thế nào để máy tính tự động tìm ra các vật thể và vị trí của chúng trong một bức ảnh?'),\n"
-            "    ('q_005', 'làm sao để ngăn chặn người dùng nhập mã độc vào ô tìm kiếm nhằm phá hoại cơ sở dữ liệu web'),\n"
-            "    ('q_019', 'sự khác biệt giữa điều chuẩn L1 Lasso và điều chuẩn L2 Ridge'),\n"
-            "]\n\n"
+            "# Đọc 3 truy vấn dev trực tiếp từ data/eval/queries.jsonl\n"
+            "dev_target_ids = ['q_001', 'q_005', 'q_019']\n"
+            "dev_queries_dict = {}\n"
+            "with open(PROJECT_ROOT / 'data/eval/queries.jsonl', 'r', encoding='utf-8') as f:\n"
+            "    for line in f:\n"
+            "        if line.strip():\n"
+            "            q = json.loads(line)\n"
+            "            if q['query_id'] in dev_target_ids:\n"
+            "                dev_queries_dict[q['query_id']] = q['query']\n\n"
+            "dev_queries = [(qid, dev_queries_dict[qid]) for qid in dev_target_ids if qid in dev_queries_dict]\n\n"
             "# Chạy truy vấn và hiển thị bảng đối chiếu Top-5 cho từng câu hỏi\n"
             "for qid, qtext in dev_queries:\n"
             "    c_top5 = chroma_retriever.search(qtext, top_k=5)\n"
@@ -315,7 +318,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# Phân tích chuyên sâu truy vấn q_001: Khảo sát thứ tự của 4 tài liệu thị giác liên quan\n"
+            "# Phân tích trường hợp truy vấn q_001: Khảo sát thứ tự của 4 tài liệu thị giác liên quan\n"
             "# cv_009: Image Classification | cv_010: Faster R-CNN | cv_011: YOLO | cv_014: Mask R-CNN\n"
             "q_001_text = dev_queries[0][1]\n"
             "c_all = chroma_retriever.search(q_001_text, top_k=114)\n"
@@ -338,7 +341,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "    for did, desc in target_ids.items()\n"
             "])\n\n"
             "# Trực quan hóa thứ hạng (trục tung đảo ngược: Hạng 1 cao nhất)\n"
-            "fig, ax = plt.subplots(figsize=(8, 4))\n"
+            "fig, ax = plt.subplots(figsize=(8, 3.8))\n"
             "x = np.arange(len(target_ids))\n"
             "width = 0.35\n\n"
             "chroma_vals = [c_ranks[did] for did in target_ids]\n"
@@ -360,10 +363,15 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
     cells.append(
         nbformat.v4.new_markdown_cell(
             "**Nhận xét:**\n"
-            "1. Trên $q_{001}$, cả hai phương pháp đều xếp `cv_009` (Phân loại ảnh) ở vị trí số 1 do độ bão hòa cao của các từ vựng chung như 'bức ảnh', 'thị giác máy tính'. Tuy nhiên, Chroma nắm bắt được ý định 'vị trí vật thể' để đưa `cv_014` (Phân đoạn cá thể) lên hạng 2 (khoảng cách 0.1504 rất sát 0.1452).\n"
-            "2. Trên $q_{005}$, BM25 nhận diện chính xác tài liệu SQL Injection (`net_011`) ở hạng 1 nhờ khớp từ khóa 'cơ sở dữ liệu'. Chroma cũng đưa nhóm an ninh web (XSS, SQLi, DDoS, CSRF) vào toàn bộ Top-4.\n"
-            "3. Trên $q_{019}$, Chroma phân biệt rất tốt ngữ cảnh để đưa L2 Ridge (`ml_005`) và L1 Lasso (`ml_004`) vào Top-1 và Top-2, trong khi BM25 bị nhiễu bởi từ 'chuẩn hóa' nên đẩy tài liệu Batch Normalization lên đầu.\n"
-            "4. Thí nghiệm minh chứng khách quan cả ưu điểm và giới hạn: Tìm kiếm ngữ nghĩa vượt trội ở các câu hỏi diễn đạt khác từ khóa, nhưng có thể bị phân tán khi tài liệu chuyên môn sử dụng hệ thuật ngữ học thuật hẹp."
+            "1. Trên $q_{001}$, cả hai phương pháp đều xếp `cv_009` (Phân loại ảnh) ở vị trí số 1. "
+            "Giả thuyết giải thích dựa trên đặc trưng văn bản là đoạn `cv_009` chứa tần suất cao các từ vựng chung với câu hỏi như 'bức ảnh' và 'máy tính'. "
+            "Tài liệu `cv_014` (Phân đoạn cá thể) được Chroma xếp ở hạng 2 (khoảng cách 0.1504 rất sát 0.1452) do văn bản có chứa các cụm từ mô tả vị trí đối tượng.\n"
+            "2. Trên $q_{005}$, BM25 xếp tài liệu SQL Injection (`net_011`) ở hạng 1 nhờ trùng khớp trực tiếp cụm từ 'cơ sở dữ liệu'. "
+            "Chroma đưa nhóm tài liệu an ninh web (XSS, SQLi, DDoS, CSRF) vào toàn bộ Top-4.\n"
+            "3. Trên $q_{019}$, Chroma xếp hai tài liệu đối chiếu L2 Ridge (`ml_005`) và L1 Lasso (`ml_004`) ở Top-1 và Top-2, "
+            "trong khi BM25 bị ảnh hưởng bởi tần suất từ 'chuẩn hóa' nên xếp tài liệu Batch Normalization ở hạng 1.\n"
+            "4. Ba truy vấn dev cho thấy sự khác biệt về mặt thứ hạng giữa cơ chế nhúng ngữ nghĩa dày đặc và đối sánh từ khóa thưa thớt. "
+            "Tuy nhiên, kết quả này chỉ là các quan sát thực nghiệm trên ba câu hỏi cụ thể, chưa cấu thành bằng chứng để khái quát rằng một phương pháp là vượt trội tổng thể."
         )
     )
 
@@ -383,29 +391,27 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# 1. Lấy toàn bộ vector đã lưu trong Chroma collection seminar_corpus_e5\n"
+            "# Lấy toàn bộ vector đã lưu trong Chroma collection seminar_corpus_e5\n"
             "stored_data = col.get(include=['embeddings', 'documents', 'metadatas'])\n"
             "corpus_ids = stored_data['ids']\n"
             "corpus_embeddings = np.array(stored_data['embeddings'], dtype=np.float32)\n"
             "print(f'Đã trích xuất ma trận embedding từ Chroma: {corpus_embeddings.shape}')\n\n"
-            "# 2. Đối chiếu kết quả trên 3 dev queries\n"
+            "# Đối chiếu kết quả trên 3 dev queries\n"
             "from sentence_transformers import SentenceTransformer\n"
             "model = SentenceTransformer('intfloat/multilingual-e5-small', device='cpu')\n\n"
             "ann_comparison_rows = []\n"
             "recall_scores = []\n\n"
             "for qid, qtext in dev_queries:\n"
-            "    # Chroma HNSW search\n"
+            "    # Chroma HNSW search trên index đĩa\n"
             "    c_top5 = chroma_retriever.search(qtext, top_k=5)\n"
             "    chroma_top5_ids = [item['id'] for item in c_top5]\n"
             "    \n"
-            "    # Exact Cosine search in RAM using NumPy\n"
+            "    # Exact Cosine search tính trực tiếp trong RAM bằng NumPy\n"
             "    q_vec = model.encode(f'query: {qtext.strip()}', normalize_embeddings=True, show_progress_bar=False)\n"
-            "    # Cosine distance = 1.0 - dot_product (đối với vector đã chuẩn hóa L2)\n"
             "    exact_distances = 1.0 - np.dot(corpus_embeddings, q_vec)\n"
             "    exact_top5_indices = np.argsort(exact_distances)[:5]\n"
             "    exact_top5_ids = [corpus_ids[idx] for idx in exact_top5_indices]\n"
             "    \n"
-            "    # Tính số lượng trùng khớp và ANN Recall@5\n"
             "    overlap = set(chroma_top5_ids) & set(exact_top5_ids)\n"
             "    recall_5 = len(overlap) / 5.0\n"
             "    recall_scores.append(recall_5)\n"
@@ -442,9 +448,11 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
     cells.append(
         nbformat.v4.new_markdown_cell(
             "**Nhận xét:**\n"
-            "1. Trên cả 3 truy vấn được kiểm tra, Top-5 của Chroma HNSW trùng khớp 100% với phương pháp tìm kiếm chính xác vét cạn (ANN Recall@5 = 1.0).\n"
-            "2. Kết quả này chứng minh thuật toán HNSW của Chroma hoạt động hoàn toàn chính xác và không làm thất lạc láng giềng gần nhất trên tập dữ liệu này. Xếp hạng của `cv_009` trên $q_{001}$ là do đặc trưng hình học của vector E5 chứ không phải do sai số xấp xỉ của chỉ mục HNSW.\n"
-            "3. Cần lưu ý rằng kết quả 100% này được ghi nhận cụ thể trên 3 truy vấn thử nghiệm với quy mô 114 tài liệu; không phải là sự bảo đảm phổ quát chung rằng HNSW luôn đạt 100% trong mọi điều kiện dữ liệu quy mô hàng triệu vector."
+            "1. Trên đúng 3 truy vấn dev được khảo sát ($q_{001}, q_{005}, q_{019}$), Top-5 của Chroma HNSW trùng khớp với phương pháp tính cosine chính xác vét cạn (ANN Recall@5 = 1.0).\n"
+            "2. Kết quả đo lường này cho thấy trên quy mô 114 tài liệu với các truy vấn thử nghiệm cụ thể này, thuật toán HNSW của Chroma tìm lại đúng các láng giềng gần nhất của không gian vector. "
+            "Thứ hạng của `cv_009` trên $q_{001}$ phản ánh vị trí hình học của vector E5 chứ không phải do sai số lập chỉ mục.\n"
+            "3. Cần nhấn mạnh rằng kết quả này được ghi nhận cục bộ trên 3 truy vấn thử nghiệm với quy mô 114 tài liệu, "
+            "không phải là sự chứng minh hay bảo đảm phổ quát rằng HNSW luôn đạt Recall = 100% trên mọi truy vấn hoặc trên dữ liệu lớn."
         )
     )
 
@@ -462,8 +470,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# 1. Khảo sát tiến độ kiểm duyệt trên tập Candidate Review Pool\n"
-            "import csv\n"
+            "# Khảo sát tiến độ kiểm duyệt trên tập Candidate Review Pool\n"
             "pool_rows = []\n"
             "with open(PROJECT_ROOT / 'data/eval/review_pool.csv', 'r', encoding='utf-8-sig') as f:\n"
             "    reader = csv.DictReader(f)\n"
@@ -471,9 +478,12 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
             "total_candidates = len(pool_rows)\n"
             "verified_count = sum(1 for r in pool_rows if r.get('review_status') == 'verified')\n"
             "pending_count = total_candidates - verified_count\n\n"
+            "# Tính tỷ lệ phần trăm động và hiển thị\n"
+            "pct_verified = (100.0 * verified_count / total_candidates) if total_candidates > 0 else 0.0\n"
+            "pct_pending = (100.0 * pending_count / total_candidates) if total_candidates > 0 else 0.0\n\n"
             "print(f'Tổng số cặp (query, doc) trong Review Pool: {total_candidates}')\n"
-            "print(f'Số nhãn đã được con người thẩm định:       {verified_count} (0.0%)')\n"
-            "print(f'Số nhãn đang chờ kiểm duyệt (Pending):      {pending_count} (100.0%)')\n\n"
+            "print(f'Số dòng được đánh dấu verified:             {verified_count} ({pct_verified:.1f}%)')\n"
+            "print(f'Số dòng đang chờ kiểm duyệt (Pending):      {pending_count} ({pct_pending:.1f}%)')\n\n"
             "# Hiển thị trích đoạn 5 dòng đầu tiên từ bảng kiểm duyệt\n"
             "df_pool_sample = pd.DataFrame([\n"
             "    {\n"
@@ -493,17 +503,47 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# 2. Kiểm tra Cổng Verified-Label Gate và Hiển thị Bảng Xếp Hạng Xem Trước (Preview Rankings)\n"
+            "# Kiểm tra Cổng Verified-Label Gate và Xử lý Hiển thị Kết quả Đánh giá\n"
             "from src.ui_helpers import check_official_benchmark_eligibility, load_preview_artifact\n\n"
             "is_eligible, gate_reason, official_data = check_official_benchmark_eligibility(\n"
             "    review_pool_path=PROJECT_ROOT / 'data/eval/review_pool.csv',\n"
             "    corpus_path=PROJECT_ROOT / 'data/corpus/documents.jsonl',\n"
             "    official_json_path=PROJECT_ROOT / 'results/g3/official_metrics.json'\n"
             ")\n\n"
-            "if not is_eligible:\n"
+            "if is_eligible and official_data:\n"
+            "    print('>>> KẾT QUẢ ĐÁNH GIÁ CHÍNH THỨC (OFFICIAL BENCHMARK) <<<')\n"
+            "    print('Điều kiện: 100% nhãn ứng viên trong review pool đã được xác thực.\\n')\n"
+            "    macro = official_data.get('macro_averages', {})\n"
+            "    c_m = macro.get('chroma', {})\n"
+            "    b_m = macro.get('bm25', {})\n"
+            "    df_macro = pd.DataFrame([\n"
+            "        {'Chỉ số (Metric)': 'Hit@5', 'Chroma (E5)': c_m.get('hit@5', 0.0), 'BM25 (PyVi)': b_m.get('hit@5', 0.0), 'Chênh lệch': round(c_m.get('hit@5', 0.0) - b_m.get('hit@5', 0.0), 4)},\n"
+            "        {'Chỉ số (Metric)': 'MRR@5', 'Chroma (E5)': c_m.get('mrr@5', 0.0), 'BM25 (PyVi)': b_m.get('mrr@5', 0.0), 'Chênh lệch': round(c_m.get('mrr@5', 0.0) - b_m.get('mrr@5', 0.0), 4)},\n"
+            "        {'Chỉ số (Metric)': 'nDCG@5', 'Chroma (E5)': c_m.get('ndcg@5', 0.0), 'BM25 (PyVi)': b_m.get('ndcg@5', 0.0), 'Chênh lệch': round(c_m.get('ndcg@5', 0.0) - b_m.get('ndcg@5', 0.0), 4)},\n"
+            "    ])\n"
+            "    display(df_macro)\n\n"
+            "    # Biểu đồ cột nhóm so sánh 3 chỉ số trên thang đo [0..1]\n"
+            "    fig, ax = plt.subplots(figsize=(7, 3.8))\n"
+            "    metrics_names = ['Hit@5', 'MRR@5', 'nDCG@5']\n"
+            "    c_scores = [c_m.get('hit@5', 0.0), c_m.get('mrr@5', 0.0), c_m.get('ndcg@5', 0.0)]\n"
+            "    b_scores = [b_m.get('hit@5', 0.0), b_m.get('mrr@5', 0.0), b_m.get('ndcg@5', 0.0)]\n"
+            "    x = np.arange(len(metrics_names))\n"
+            "    w = 0.32\n"
+            "    ax.bar(x - w/2, c_scores, w, label='Chroma (E5)', color='#10B981')\n"
+            "    ax.bar(x + w/2, b_scores, w, label='BM25 (PyVi)', color='#3B82F6')\n"
+            "    ax.set_ylabel('Điểm số [0..1]')\n"
+            "    ax.set_ylim(0.0, 1.15)\n"
+            "    ax.set_xticks(x)\n"
+            "    ax.set_xticklabels(metrics_names, fontweight='bold')\n"
+            "    ax.set_title('So sánh các chỉ số truy xuất chính thức (n = 11 câu hỏi answerable)', fontsize=11, fontweight='bold')\n"
+            "    ax.legend()\n"
+            "    plt.tight_layout()\n"
+            "    plt.show()\n"
+            "else:\n"
             "    print('>>> TRẠNG THÁI CỔNG KIỂM DUYỆT (VERIFIED GATE): ĐANG KHÓA AN TOÀN <<<')\n"
-            "    print(f'Lý do: {gate_reason}')\n"
-            "    print('Hệ thống từ chối xuất điểm số benchmark chính thức khi nhãn chưa được con người phê duyệt.\\n')\n\n"
+            "    print(f'Chi tiết: {gate_reason}')\n"
+            "    print('Chưa có kết quả đánh giá chính thức: tập nhãn relevance đang chờ kiểm duyệt.')\n"
+            "    print('Tuyệt đối không sử dụng điểm số giả định để thay thế cho benchmark khoa học.\\n')\n\n"
             "# Đọc kết quả đối soát thứ hạng Top-1 từ preview artifact trên 12 test queries\n"
             "preview_data = load_preview_artifact(PROJECT_ROOT / 'results/g3/rankings_preview.json')\n"
             "if preview_data and 'eval_results' in preview_data:\n"
@@ -533,7 +573,7 @@ def create_experiment_notebook() -> nbformat.NotebookNode:
 
     cells.append(
         nbformat.v4.new_code_cell(
-            "# 3. Phân tích định tính truy vấn ngoài phạm vi (Unanswerable query q_030)\n"
+            "# Phân tích định tính truy vấn ngoài phạm vi (Unanswerable query q_030)\n"
             "unans_item = next(item for item in preview_data['eval_results'] if item['is_unanswerable'])\n"
             "print(f'Truy vấn q_030: \"{unans_item[\"query_text\"]}\"')\n"
             "print(f'- Chroma láng giềng gần nhất: {unans_item[\"chroma_top_k\"][0][\"doc_id\"]} (Khoảng cách: {unans_item[\"chroma_top_k\"][0][\"distance\"]})')\n"
