@@ -6,9 +6,11 @@ Dự án Seminar môn Nhận diện Mẫu (Pattern Recognition) - Nghiên cứu 
 - **GitHub Issue #3 (TASK G1):** [Issue #3 — Curate Vietnamese IT corpus, evaluation queries and draft qrels](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/3)
 - **GitHub Issue #5 (TASK G2):** [Issue #5 — Index 114 passages and implement Chroma + Vietnamese BM25 retrieval CLI](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/5)
 - **GitHub Issue #7 (TASK G3):** [Issue #7 — Reproducible retrieval evaluation and pooled relevance review](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/7)
+- **GitHub Issue #9 (TASK G4+G5):** [Issue #9 — Build Streamlit Semantic Search Lab + demo acceptance checks](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/9)
 - **Embedding Model:** `intfloat/multilingual-e5-small` (384 chiều, tiền tố `passage: ` và `query: `, chuẩn hóa L2)
 - **Vector Database:** Chroma (`chromadb.PersistentClient`) với metric Cosine Distance
 - **Lexical Baseline:** BM25Okapi (`rank_bm25`) kết hợp phân đoạn từ tiếng Việt `pyvi`
+- **Interactive UI:** Streamlit (`app.py`) với 3 tabs chức năng trực quan
 
 ---
 
@@ -161,10 +163,42 @@ python scripts/run_evaluation.py --official
 
 ---
 
-## 6. Cấu trúc thư mục dự án
+## 6. Khởi Chạy Ứng Dụng Streamlit Demo (Task G4+G5)
+
+Giao diện tương tác **Chroma Semantic Search Lab** hỗ trợ trình diễn trực quan trước lớp học với 3 tabs:
+1. **Semantic Search:** Truy vấn tự do, so sánh song song Chroma vs BM25, lọc theo chủ đề.
+2. **Collection Explorer:** Xem 114 tài liệu chính thức (`seminar_corpus_e5`, chỉ đọc) và thao tác Thêm/Sửa/Xóa/Tìm kiếm trên collection demo riêng (`seminar_demo_mutable`).
+3. **Experiment Results:** Đối soát 12 test queries, phân tích câu hỏi unanswerable, hiển thị trạng thái cổng Verified-Label Gate.
+
+### 6.1 Chuẩn bị và Kiểm tra Chỉ mục
+
+Trước khi khởi chạy ứng dụng, bảo đảm chỉ mục đã được lập:
+
+```powershell
+python scripts/build_index.py --check
+```
+
+### 6.2 Khởi chạy Ứng dụng Streamlit
+
+```powershell
+streamlit run app.py
+```
+
+Ứng dụng sẽ tự động mở trên trình duyệt tại địa chỉ mặc định: `http://localhost:8501`.
+
+### 6.3 Chạy Kiểm chứng Tối thiểu cho Demo (Acceptance Checks)
+
+```powershell
+python scripts/verify_demo_acceptance.py
+```
+
+---
+
+## 7. Cấu trúc thư mục dự án
 
 ```text
 PatternRecognition_Seminar/
+├── app.py                       # Ứng dụng Streamlit: Chroma Semantic Search Lab
 ├── data/
 │   ├── corpus/
 │   │   ├── documents.jsonl      # 114 đoạn tài liệu tiếng Việt (6 chủ đề)
@@ -182,12 +216,14 @@ PatternRecognition_Seminar/
 │   ├── indexer.py               # Quản lý Chroma collection, batch embedding, manifest
 │   ├── chroma_search.py         # Module tìm kiếm ngữ nghĩa Chroma
 │   ├── bm25_search.py           # Module tìm kiếm từ khóa BM25 tiếng Việt (PyVi)
-│   └── evaluation.py            # Tính toán metrics (Hit@5, MRR@5, nDCG@5) & Verified Gate
+│   ├── evaluation.py            # Tính toán metrics (Hit@5, MRR@5, nDCG@5) & Verified Gate
+│   └── ui_helpers.py            # Quản lý cache tài nguyên, collection demo CRUD và gate check
 ├── scripts/
 │   ├── build_index.py           # CLI xây dựng, kiểm tra và rebuild index Chroma
 │   ├── compare_search.py        # CLI đối sánh tìm kiếm Chroma vs BM25
 │   ├── prepare_eval_pool.py     # CLI tạo candidate review pool 12 test queries
 │   ├── run_evaluation.py        # CLI chạy đánh giá truy hồi và kiểm tra cổng gate
+│   ├── verify_demo_acceptance.py# Tự động hóa kiểm chứng 4 tiêu chuẩn acceptance demo G4+G5
 │   ├── validate_dataset.py      # Validator kiểm tra toàn vẹn dữ liệu G1
 │   ├── smoke_chroma.py          # Smoke test G0
 │   └── verify_persistence.py    # Kiểm chứng persistence G0 (2 processes)
@@ -198,7 +234,8 @@ PatternRecognition_Seminar/
 │   ├── g0-smoke.md              # Báo cáo thực nghiệm G0
 │   ├── g1-dataset.md            # Báo cáo tập dữ liệu G1
 │   ├── g2-retrieval.md          # Báo cáo kỹ thuật đối sánh truy hồi G2
-│   └── g3-evaluation.md         # Báo cáo quy trình đánh giá và candidate pool G3
+│   ├── g3-evaluation.md         # Báo cáo quy trình đánh giá và candidate pool G3
+│   └── g5-demo.md               # Báo cáo nghiệm thu ứng dụng Streamlit Lab G4+G5
 ├── .gitignore                   # Loại trừ .venv, chroma_db, model weights, cache
 ├── requirements.txt             # Danh sách dependencies đã kiểm tra
 └── README.md                    # Hướng dẫn thiết lập và thực thi dự án

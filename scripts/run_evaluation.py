@@ -368,6 +368,8 @@ def main() -> None:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "corpus_path": args.corpus_path,
                 "corpus_sha256": corpus_sha,
+                "review_pool_path": str(args.review_pool),
+                "review_pool_sha256": compute_file_sha256(args.review_pool),
                 "document_count": corpus_count,
                 "model_name": DEFAULT_MODEL_NAME,
                 "collection_name": args.collection_name,
