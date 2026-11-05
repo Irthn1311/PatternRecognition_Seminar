@@ -18,9 +18,10 @@
     - `backgroundColor = "#0F172A"` (Slate-900 / Navy charcoal tối dễ chịu).
     - `secondaryBackgroundColor = "#1E293B"` (Slate-800 cho bề mặt sidebar và container).
     - `textColor = "#F8FAFC"` (Slate-50 trắng sáng đạt chuẩn tương phản cao).
+    - Giữ nguyên cơ chế bảo vệ CORS mặc định an toàn của Streamlit (loại bỏ `enableCORS = false`).
   - Tái cấu trúc các thẻ kết quả: Sử dụng `st.container(border=True)` kết hợp các badge có màu tương phản tường minh (`badge-rank-chroma`, `badge-rank-bm25`, `badge-topic-tag`).
   - Tiêu đề tài liệu (`result-title-text`) được định dạng chữ lớn, in đậm và sáng rõ (`#F8FAFC`), nổi bật hơn hẳn so với ID và chủ đề.
-  - Loại bỏ hoàn toàn việc nhúng chuỗi HTML tùy chỉnh có chứa trực tiếp văn bản thô chưa escape.
+  - **Bảo vệ chống chèn HTML chưa escape (FIX 1):** Toàn bộ các giá trị text động (`title`, `topic`, `preview`) đều được xử lý qua hàm `safe_html()` (`html.escape(..., quote=True)`) trước khi đưa vào các thẻ hiển thị. Các ký tự đặc biệt `<`, `>`, `&`, `"`, `'` được escape thành thực thể HTML an toàn, loại trừ triệt để nguy cơ lỗi cú pháp hoặc XSS.
 
 ### 1.2 Tối ưu bố cục trình diễn lớp học (Classroom Presentation Layout)
 - **Sidebar gọn gàng:** Tinh gọn các thông số kỹ thuật (Model ID, số chiều 384, tokenizer, metric) vào một `st.expander("🛠️ Chi tiết cấu hình kỹ thuật")`, giúp thanh điều hướng thoáng đãng và tập trung vào trạng thái chỉ mục.
@@ -30,10 +31,14 @@
 ### 1.3 Khắc phục cơ chế Search Interaction
 - **Vấn đề ban đầu:** Điều kiện `if search_btn or query_input.strip()` khiến Streamlit tự động kích hoạt tính toán vector embedding E5 mỗi khi người dùng thay đổi bất kỳ widget nào (thanh trượt Top-K, bộ lọc chủ đề, hoặc khi vừa chọn câu hỏi mẫu).
 - **Giải pháp triển khai:**
-  - Chuyển toàn bộ cụm điều khiển vào `st.form("search_form", clear_on_submit=False)` kết hợp quản lý trạng thái phiên qua `st.session_state`.
-  - Chọn câu hỏi mẫu chỉ điền văn bản vào ô tìm kiếm, **chỉ thực thi truy hồi khi người dùng nhấn nút '🚀 Tìm kiếm'**.
-  - Kết quả tìm kiếm và tham số của lần truy vấn gần nhất được lưu trong `st.session_state`, không bị mất hay tính toán lại khi người dùng tương tác với các thành phần khác trên trang.
-  - Xử lý lỗi tách biệt: Nếu Chroma index bị thiếu hoặc không đồng bộ, giao diện hiển thị thông báo lỗi `st.error` rõ ràng kèm mã lệnh sửa chữa; ở chế độ `Both`, BM25 vẫn tiếp tục hiển thị kết quả bình thường thay vì nhầm lẫn thành "Không có kết quả".
+  - Chuyển toàn bộ cụm điều khiển tìm kiếm vào `st.form("search_form", clear_on_submit=False)` kết hợp quản lý trạng thái phiên qua `st.session_state`.
+  - Chọn câu hỏi mẫu chỉ điền văn bản vào ô tìm kiếm, **chỉ thực thi suy luận khi người dùng nhấn nút '🚀 Tìm kiếm'**.
+  - Việc thay đổi thanh trượt Top-K, đổi bộ lọc chủ đề hoặc đổi câu hỏi mẫu không còn tự động kích hoạt tính toán vector E5 lại.
+- **Bảo toàn ngữ cảnh phiên (`st.session_state`):**
+  - Lưu giữ câu hỏi, chế độ, Top-K, chủ đề và danh sách kết quả của lần submit gần nhất.
+  - Khi người dùng tương tác với các thành phần khác, kết quả tìm kiếm không bị biến mất hay bị gán nhầm cho cấu hình chưa submit.
+- **Xử lý lỗi rõ ràng:**
+  - Nếu Chroma index bị thiếu hoặc không đồng bộ, giao diện hiển thị thông báo lỗi `st.error` rõ ràng kèm mã lệnh sửa chữa; ở chế độ `Both`, BM25 vẫn tiếp tục hiển thị kết quả độc lập thay vì nhầm lẫn thành "Không có kết quả".
 
 ### 1.4 Khắc phục Official Explorer & Experiment Results
 - **Official Corpus Explorer:** Chuyển từ việc đọc tệp `documents.jsonl` sang đọc trực tiếp dữ liệu và metadata từ collection Chroma thật `seminar_corpus_e5` qua `col.get(include=['documents', 'metadatas'])`, phản ánh đúng `col.count() = 114`.
@@ -44,22 +49,30 @@
 
 ## 2. Chẩn Đoán Chất Lượng Truy Hồi Trên Truy Vấn `q_001`
 
-### 2.1 Hiện tượng quan sát thực tế
+### 2.1 Truy vấn thực tế qua Chroma HNSW Search và BM25 Retrieval (Top-30 Inspection)
 - **Câu hỏi (`q_001`):** *"làm thế nào để máy tính tự động tìm ra các vật thể và vị trí của chúng trong một bức ảnh?"*
-- **Xếp hạng thực tế:**
-  - **Chroma:** Hạng 1: `cv_009` (0.1452), Hạng 2: `cv_014` (0.1504), Hạng 11: `cv_011` (0.1767), Hạng 23: `cv_010` (0.1874).
-  - **BM25:** Hạng 1: `cv_009` (13.1526), Hạng 17: `cv_010` (7.7637), Hạng 18: `cv_014` (7.7063), Hạng 29: `cv_011` (6.8481).
+- **Thứ hạng thực tế của các tài liệu mục tiêu:**
 
-### 2.2 Phân tích ngữ nghĩa & nguyên nhân cốt lõi
-1. **Tại sao `cv_009` (Phân loại ảnh - Image Classification) đứng đầu ở cả hai phương pháp?**
-   - Về mặt từ vựng (BM25): Đoạn văn `cv_009` chứa mật độ từ trùng khớp cao nhất với câu hỏi: *"bức ảnh"*, *"ảnh"*, *"thị giác máy tính"*, *"máy tính"*, *"một"*, *"các"*, *"của"*, *"để"*, *"và"* (8/17 tokens trùng khớp).
-   - Về mặt ngữ nghĩa (E5): `cv_009` mô tả bài toán nền tảng của thị giác máy tính đối với ảnh chụp ("như chó, mèo, xe hơi"), tạo ra vector biểu diễn có độ tương đồng bề mặt rất cao với câu hỏi mang văn phong tự nhiên.
-2. **Tại sao `cv_010` (Faster R-CNN) và `cv_011` (YOLO) bị xếp sau?**
-   - Tài liệu `cv_010` và `cv_011` sử dụng hệ thống **thuật ngữ học thuật chuyên sâu**: *"phát hiện đối tượng"*, *"vùng ứng viên"*, *"mạng đề xuất vùng RPN"*, *"hộp neo anchor boxes"*, *"tọa độ hộp bao bounding box"*.
-   - Trong khi đó, câu hỏi `q_001` được diễn đạt theo văn phong tự nhiên của người học: *"tìm ra các vật thể và vị trí của chúng trong một bức ảnh"*.
-   - Tài liệu `cv_010` thậm chí không chứa từ *"ảnh"* hay *"bức ảnh"* trong phần thân đoạn văn, khiến điểm số BM25 bị tụt sâu xuống hạng 17.
-3. **Tại sao `cv_014` (Phân đoạn cá thể - Instance Segmentation) lại đứng thứ 2 ở Chroma?**
-   - Đoạn `cv_014` có chứa cụm từ *"định vị chính xác vị trí"*, *"phát hiện đối tượng"* và *"xuất hiện trong ảnh"*. Nhờ đó, mô hình E5 nhận diện sự tương đồng ngữ nghĩa về "vị trí vật thể" và đưa `cv_014` lên vị trí Hạng 2 với khoảng cách cosine `0.1504` (rất sát Hạng 1 `0.1452`).
+| Tài liệu | Tên bài & Lĩnh vực | Hạng Chroma (HNSW Vector Search) | Cosine Distance | Hạng BM25 (PyVi Lexical Search) | BM25 Score |
+| :---: | :--- | :---: | :---: | :---: | :---: |
+| `cv_009` | Phân loại Ảnh (Image Classification) | **1** | **0.1452** | **1** | **13.1526** |
+| `cv_014` | Phân đoạn Cá thể (Instance Segmentation & Mask R-CNN) | **2** | **0.1504** | **18** | **7.7063** |
+| `cv_011` | Phát hiện Đối tượng Một giai đoạn (YOLO) | **11** | **0.1767** | **29** | **6.8481** |
+| `cv_010` | Phát hiện Đối tượng Hai giai đoạn (Faster R-CNN) | **23** | **0.1874** | **17** | **7.7637** |
+
+### 2.2 Phân biệt giữa Chroma HNSW Search và E5 Exact Cosine trong RAM (FIX 2)
+Trong script chẩn đoán `scripts/diagnose_q001.py`, nhóm nghiên cứu phân định tường minh giữa:
+1. **Truy vấn Chroma thật (HNSW ANN Search):** Gọi qua `ChromaRetriever.search(q_001, top_k=30)` truy xuất trên cấu trúc đồ thị HNSW phân cấp lưu trên đĩa.
+2. **Truy vấn Cosine chính xác lý thuyết trong RAM (Exact In-Memory Cosine):** Tính toán tích vô hướng vét cạn $1 - \mathbf{u} \cdot \mathbf{v}$ trực tiếp trên mảng vector NumPy trong bộ nhớ.
+
+**Kết quả đối chiếu:**
+- Trên tập học liệu 114 tài liệu, Top-5 của Chroma HNSW (`cv_009`, `cv_014`, `cv_018`, `cv_008`, `ml_009`) **trùng khớp 100% về cả thứ tự lẫn khoảng cách** so với tính toán cosine chính xác vét cạn trong RAM.
+- Điều này chứng minh rằng: **Chroma HNSW không hề gặp hiện tượng sai số xấp xỉ hay thất lạc láng giềng gần nhất** trên quy mô này. Việc `cv_009` đứng trên `cv_010`/`cv_011` hoàn toàn là do hình học không gian vector của mô hình `intfloat/multilingual-e5-small`.
+
+### 2.3 Phân tích nguyên nhân ngữ nghĩa & từ vựng
+1. **Độ bão hòa từ vựng (BM25):** Đoạn văn `cv_009` chứa mật độ từ trùng khớp cao nhất với câu hỏi: *"bức ảnh"*, *"ảnh"*, *"thị giác máy tính"*, *"máy tính"*, *"một"*, *"các"*, *"của"*, *"để"*, *"và"* (8/17 tokens trùng khớp). Trong khi đó, đoạn `cv_010` thậm chí không chứa từ *"ảnh"* hay *"bức ảnh"* trong phần thân văn bản.
+2. **Khoảng cách phong cách diễn đạt (Semantic Gap):** Câu hỏi `q_001` dùng văn phong tự nhiên đời thường của người học (*"tìm ra các vật thể và vị trí của chúng trong một bức ảnh"*), trong khi `cv_010` và `cv_011` sử dụng hệ thống thuật ngữ học thuật chuyên sâu (*"phát hiện đối tượng"*, *"vùng ứng viên"*, *"mạng đề xuất vùng RPN"*, *"hộp neo anchor boxes"*, *"tọa độ hộp bao bounding box"*).
+3. **Lý do `cv_014` đứng Hạng 2 ở Chroma:** Đoạn `cv_014` có chứa cụm từ *"định vị chính xác vị trí"*, *"phát hiện đối tượng"* và *"xuất hiện trong ảnh"*. Nhờ đó, mô hình E5 nhận diện sự tương đồng ngữ nghĩa về "vị trí vật thể trong ảnh" và đưa `cv_014` lên vị trí Hạng 2 với khoảng cách cosine `0.1504` (rất sát Hạng 1 `0.1452`).
 
 ---
 
@@ -67,18 +80,18 @@
 
 Để kiểm chứng xem việc bổ sung tiêu đề có cải thiện khả năng phân biệt hay không, nhóm nghiên cứu đã thiết lập thử nghiệm đối chứng trên 3 câu hỏi thuộc tập dev (`q_001`, `q_005`, `q_019`):
 - **Biến thể A:** BM25 lập chỉ mục bổ sung Tiêu đề (`title + ". " + text`).
-- **Biến thể B:** E5 mã hóa bổ sung Tiêu đề (`passage: title + ". " + text`).
+- **Biến thể B:** E5 Exact Cosine mã hóa bổ sung Tiêu đề (`passage: title + ". " + text`).
 
 ### Kết quả đo đạc thực nghiệm:
 
 | Query | Phương pháp | Baseline (Chỉ thân văn bản) Top-1 & Top-2 | Biến thể (Tiêu đề + Thân văn bản) Top-1 & Top-2 | Đánh giá biến thể |
 | :--- | :--- | :--- | :--- | :--- |
 | **`q_001`** (Vị trí vật thể ảnh) | **BM25** | #1: `cv_009` (13.15), #2: `cv_003` (12.09) | #1: `cv_008` (14.74), #2: `cv_003` (14.28) | Không đưa được `cv_010`/`cv_011` lên Top. |
-| | **Chroma** | #1: `cv_009` (0.1452), #2: `cv_014` (0.1504) | #1: `cv_009` (0.1496), #2: `cv_014` (0.1513) | Thứ hạng không đổi; khoảng cách giữ nguyên. |
+| | **E5 In-Memory** | #1: `cv_009` (0.1452), #2: `cv_014` (0.1504) | #1: `cv_009` (0.1496), #2: `cv_014` (0.1513) | Thứ hạng không đổi; khoảng cách giữ nguyên. |
 | **`q_005`** (Mã độc phá CSDL) | **BM25** | #1: `net_011` SQLi (13.32), #2: `net_013` (12.78) | #1: `net_013` CSRF (15.67), #2: `net_011` (12.81) | **Hồi quy (Regression):** `net_011` bị tụt xuống #2. |
-| | **Chroma** | #1: `net_012` XSS (0.1319), #2: `net_011` (0.1344) | #1: `net_012` XSS (0.1272), #2: `net_013` (0.1404) | **Hồi quy (Regression):** `net_011` bị tụt xuống #3. |
+| | **E5 In-Memory** | #1: `net_012` XSS (0.1319), #2: `net_011` (0.1344) | #1: `net_012` XSS (0.1272), #2: `net_013` (0.1404) | **Hồi quy (Regression):** `net_011` bị tụt xuống #3. |
 | **`q_019`** (L1 vs L2) | **BM25** | #1: `dl_008` (14.30), #2: `ml_005` (13.78) | #1: `ml_005` Ridge (21.27), #2: `ml_004` (21.15) | **Cải thiện:** L1 và L2 lên thẳng Top 1 và 2. |
-| | **Chroma** | #1: `ml_005` Ridge (0.1310), #2: `ml_004` (0.1326) | #1: `ml_005` Ridge (0.1117), #2: `ml_004` (0.1260) | Giữ nguyên Top 1 và Top 2 (khoảng cách tốt hơn). |
+| | **E5 In-Memory** | #1: `ml_005` Ridge (0.1310), #2: `ml_004` (0.1326) | #1: `ml_005` Ridge (0.1117), #2: `ml_004` (0.1260) | Giữ nguyên Top 1 và Top 2 (khoảng cách tốt hơn). |
 
 ### Kết luận khoa học từ thử nghiệm:
 1. **Không áp dụng thay thế âm thầm vào Production Baseline:**
@@ -99,6 +112,7 @@
 - **Check 4 (Experiment Results & Gate Lock):** **PASS** — Đọc động thống kê nhãn; khi 105 nhãn đang pending, UI khóa chặt không hiển thị official benchmark.
 
 ### 4.2 Kiểm tra các chốt bảo vệ an toàn (Safeguards):
+- **Kiểm tra Escape HTML (`safe_html`):** Chuỗi `Test <script>alert(1)</script> & foo` được escape thành `Test &lt;script&gt;alert(1)&lt;/script&gt; &amp; foo` $\rightarrow$ **PASS**.
 - **Từ chối trùng ID khi Add:** `ValueError: Document ID 'id_1' already exists in demo collection.` $\rightarrow$ **PASS**.
 - **Yêu cầu ID tồn tại khi Update:** `ValueError: Document ID 'non_existent_id' not found in demo collection.` $\rightarrow$ **PASS**.
 - **Kiểm tra tính nhất quán mã băm (Double-Hash Gate):**
@@ -107,4 +121,4 @@
 
 ### 4.3 Trạng thái kiểm tra giao diện trên trình duyệt:
 - **Xác nhận kỹ thuật:** Server Streamlit khởi chạy thành công, endpoint kiểm tra sức khỏe HTTP phản hồi mã trạng thái 200 OK.
-- **Ghi nhận minh bạch:** `NOT VERIFIED IN BROWSER DIRECTLY` — Do môi trường dòng lệnh của AI Coding Agent không có môi trường đồ họa trình duyệt (Headless/No GUI) để thực hiện click chuột người dùng trực tiếp. Khuyến nghị người dùng chạy lệnh `streamlit run app.py` trên máy cá nhân để kiểm tra hiển thị thực tế trên màn hình.
+- **Ghi nhận minh bạch:** `NOT VERIFIED IN BROWSER DIRECTLY` — Do môi trường dòng lệnh của AI Coding Agent không có môi trường đồ họa trình duyệt (Headless/No GUI) để thực hiện click chuột người dùng trực tiếp. Khuyến nghị người dùng chạy lệnh `streamlit run app.py` trên máy cá nhân để trải nghiệm trực quan giao diện Dark Theme mới.

@@ -9,6 +9,7 @@ An interactive demo application for the Pattern Recognition Seminar:
 
 from __future__ import annotations
 
+import html
 import json
 import os
 import sys
@@ -51,6 +52,12 @@ from src.ui_helpers import (
     search_mutable_collection,
     update_mutable_document,
 )
+
+
+def safe_html(text: Any) -> str:
+    """Escapes HTML special characters in dynamic strings to prevent injection."""
+    return html.escape(str(text) if text is not None else "", quote=True)
+
 
 # Set page configuration
 st.set_page_config(
@@ -358,18 +365,18 @@ def render_tab_semantic_search() -> None:
             else:
                 for item in chroma_results:
                     with st.container(border=True):
-                        # Title is prominent
-                        st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                        # Title is prominent with safe escaping
+                        st.markdown(f'<div class="result-title-text">{safe_html(item["title"])}</div>', unsafe_allow_html=True)
                         st.markdown(
                             f'<span class="badge-rank-chroma">Hạng {item["rank"]}</span> '
-                            f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                            f'<span class="badge-topic-tag">🏷️ {safe_html(item["topic"])}</span> &nbsp; '
                             f'<span class="metric-score-chroma">📐 Cosine Distance: {item["distance"]:.4f}</span>',
                             unsafe_allow_html=True,
                         )
                         st.caption(f"Mã ID: `{item['id']}`")
-                        # Preview text
+                        # Preview text with safe escaping
                         preview = item["document"][:200] + ("..." if len(item["document"]) > 200 else "")
-                        st.markdown(f'<div class="passage-preview-text">{preview}</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="passage-preview-text">{safe_html(preview)}</div>', unsafe_allow_html=True)
                         with st.expander("📖 Xem toàn văn tài liệu & nguồn"):
                             st.write(item["document"])
                             st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
@@ -385,18 +392,18 @@ def render_tab_semantic_search() -> None:
             else:
                 for item in bm25_results:
                     with st.container(border=True):
-                        # Title is prominent
-                        st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                        # Title is prominent with safe escaping
+                        st.markdown(f'<div class="result-title-text">{safe_html(item["title"])}</div>', unsafe_allow_html=True)
                         st.markdown(
                             f'<span class="badge-rank-bm25">Hạng {item["rank"]}</span> '
-                            f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                            f'<span class="badge-topic-tag">🏷️ {safe_html(item["topic"])}</span> &nbsp; '
                             f'<span class="metric-score-bm25">📊 BM25 Score: {item["score"]:.4f}</span>',
                             unsafe_allow_html=True,
                         )
                         st.caption(f"Mã ID: `{item['id']}`")
-                        # Preview text
+                        # Preview text with safe escaping
                         preview = item["document"][:200] + ("..." if len(item["document"]) > 200 else "")
-                        st.markdown(f'<div class="passage-preview-text">{preview}</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="passage-preview-text">{safe_html(preview)}</div>', unsafe_allow_html=True)
                         with st.expander("📖 Xem toàn văn tài liệu & nguồn"):
                             st.write(item["document"])
                             st.caption(f"Nguồn: {item.get('source_url') or 'Nội bộ dự án'}")
@@ -421,10 +428,10 @@ def render_tab_semantic_search() -> None:
         else:
             for item in chroma_results:
                 with st.container(border=True):
-                    st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="result-title-text">{safe_html(item["title"])}</div>', unsafe_allow_html=True)
                     st.markdown(
                         f'<span class="badge-rank-chroma">Hạng {item["rank"]}</span> '
-                        f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                        f'<span class="badge-topic-tag">🏷️ {safe_html(item["topic"])}</span> &nbsp; '
                         f'<span class="metric-score-chroma">📐 Cosine Distance: {item["distance"]:.4f}</span>',
                         unsafe_allow_html=True,
                     )
@@ -442,10 +449,10 @@ def render_tab_semantic_search() -> None:
         else:
             for item in bm25_results:
                 with st.container(border=True):
-                    st.markdown(f'<div class="result-title-text">{item["title"]}</div>', unsafe_allow_html=True)
+                    st.markdown(f'<div class="result-title-text">{safe_html(item["title"])}</div>', unsafe_allow_html=True)
                     st.markdown(
                         f'<span class="badge-rank-bm25">Hạng {item["rank"]}</span> '
-                        f'<span class="badge-topic-tag">🏷️ {item["topic"]}</span> &nbsp; '
+                        f'<span class="badge-topic-tag">🏷️ {safe_html(item["topic"])}</span> &nbsp; '
                         f'<span class="metric-score-bm25">📊 BM25 Score: {item["score"]:.4f}</span>',
                         unsafe_allow_html=True,
                     )
