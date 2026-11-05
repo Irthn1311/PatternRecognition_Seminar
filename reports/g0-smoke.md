@@ -111,7 +111,7 @@ python scripts/verify_persistence.py
 | Hạng mục kiểm tra | Tiêu chuẩn đánh giá | Kết quả thực tế | Trạng thái |
 | :--- | :--- | :--- | :--- |
 | **Check 1: End-to-End** | Load model E5 CPU, embedding shape 384, upsert Chroma thành công, query trả về Top-3 đầy đủ ID, metadata, distance. | Hoàn thành, 16 bản ghi được nhúng vector 384 chiều, tìm kiếm trả về Top-3 khớp đúng nội dung. | **PASS** |
-| **Check 2: Persistence (2 processes)** | Tiến trình A ghi dữ liệu và thoát. Tiến trình B độc lập khởi tạo mới, đọc lại dữ liệu trên đĩa tại cùng đường dẫn, kiểm tra đúng 16 bản ghi và query thành công. | Script `scripts/verify_persistence.py` chạy qua 2 subprocesses độc lập. Tiến trình B đọc đúng 16 bản ghi và tìm kiếm ra `doc_algo_01` (Dijkstra) với distance `0.0613`. | **PASS** |
+| **Check 2: Persistence (2 processes)** | Tiến trình A ghi dữ liệu và thoát. Tiến trình B độc lập khởi tạo mới, đọc lại dữ liệu trên đĩa tại cùng đường dẫn, kiểm tra đúng 16 bản ghi và query thành công. | Script `scripts/verify_persistence.py` chạy qua 2 subprocesses độc lập sử dụng thư mục tạm cô lập (`tempfile.TemporaryDirectory`). Tiến trình B đọc đúng 16 bản ghi và tìm kiếm ra `doc_algo_01` (Dijkstra) với distance `0.0613`. Tự động dọn dẹp sau khi kiểm chứng hoàn tất. | **PASS** |
 | **Check 3: Idempotency** | Chạy lại ingestion dữ liệu cũ trên collection hiện có, tổng số bản ghi không tăng hoặc trùng lặp ID. | Chạy lại lệnh ingest: số bản ghi trước và sau đều là 16. Cơ chế `upsert` với stable IDs hoạt động chuẩn xác. | **PASS** |
 
 ---
