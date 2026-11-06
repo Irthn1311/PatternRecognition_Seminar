@@ -9,11 +9,13 @@ Dự án Seminar môn Nhận diện Mẫu (Pattern Recognition) - Nghiên cứu 
 - **GitHub Issue #9 (TASK G4+G5):** [Issue #9 — Build Streamlit Semantic Search Lab + demo acceptance checks](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/9)
 - **GitHub Issue #12 (TASK UI/UX + Audit):** [Issue #12 — UI/UX hotfix + dev-only retrieval relevance audit](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/12)
 - **GitHub Issue #14 (TASK Notebook Thực nghiệm):** [Issue #14 — Jupyter experiment notebook aligned with slides](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/14)
+- **GitHub Issue #11 (TASK G6):** [Issue #11 — Human-verified labels, official metrics and seminar package](https://github.com/Irthn1311/PatternRecognition_Seminar/issues/11)
 - **Embedding Model:** `intfloat/multilingual-e5-small` (384 chiều, tiền tố `passage: ` và `query: `, chuẩn hóa L2)
 - **Vector Database:** Chroma (`chromadb.PersistentClient`) với metric Cosine Distance
 - **Lexical Baseline:** BM25Okapi (`rank_bm25`) kết hợp phân đoạn từ tiếng Việt `pyvi`
 - **Interactive UI:** Streamlit (`app.py`) với cấu hình Dark Theme chuẩn trình chiếu (`.streamlit/config.toml`)
 - **Jupyter Notebook:** `notebooks/Chroma_Seminar_Experiments.ipynb` (5 phần thực nghiệm đối sánh theo slide)
+- **Official Benchmark Metrics:** Macro-Average Hit@5: 90.91%, MRR@5: 79.09% (Chroma) vs 81.82% (BM25), nDCG@5: 69.28% (Chroma) vs 74.94% (BM25)
 
 ---
 
@@ -272,14 +274,17 @@ PatternRecognition_Seminar/
 │   └── verify_persistence.py    # Kiểm chứng persistence G0 (2 processes)
 ├── results/
 │   └── g3/
-│       └── rankings_preview.json # Báo cáo kết quả và metadata có thể tái lập
+│       ├── rankings_preview.json # Báo cáo kết quả và metadata có thể tái lập
+│       └── official_metrics.json # Điểm số benchmark chính thức sau thẩm định nhãn
 ├── reports/
 │   ├── g0-smoke.md              # Báo cáo thực nghiệm G0
 │   ├── g1-dataset.md            # Báo cáo tập dữ liệu G1
 │   ├── g2-retrieval.md          # Báo cáo kỹ thuật đối sánh truy hồi G2
 │   ├── g3-evaluation.md         # Báo cáo quy trình đánh giá và candidate pool G3
 │   ├── g5-demo.md               # Báo cáo nghiệm thu ứng dụng Streamlit Lab G4+G5
-│   └── ui-retrieval-audit.md    # Báo cáo cải tiến UI/UX và chẩn đoán truy hồi Issue #12
+│   ├── ui-retrieval-audit.md    # Báo cáo cải tiến UI/UX và chẩn đoán truy hồi Issue #12
+│   ├── g6-label-review.md       # Báo cáo kết quả thẩm định 105 nhãn tương quan Task G6
+│   └── g6-official-evaluation.md# Báo cáo đánh giá thực nghiệm chính thức Task G6
 ├── .gitignore                   # Loại trừ .venv, chroma_db, model weights, cache
 ├── requirements.txt             # Danh sách dependencies cốt lõi đã kiểm tra
 ├── requirements-notebook.txt    # Danh sách dependencies bổ sung cho Jupyter & Matplotlib

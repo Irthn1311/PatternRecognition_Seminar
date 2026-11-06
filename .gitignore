@@ -57,5 +57,6 @@ models/
 .idea/
 *.swp
 *.swo
+*.bak
 .DS_Store
 Thumbs.db
