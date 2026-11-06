@@ -1,0 +1,1305 @@
+{
+  "metadata": {
+    "timestamp": "2026-11-06T02:27:55.827769+00:00",
+    "corpus_path": "data/corpus/documents.jsonl",
+    "corpus_sha256": "a9633f3a20ffdc66199d196cb41ba31497baa10385ca854b8db1fac707536dd3",
+    "review_pool_path": "data/eval/review_pool.csv",
+    "review_pool_sha256": "5ef622fcdda5c8e82ed8cffcdf18de1fcf43e36f6986bf2a7c67e05ee0c7368d",
+    "document_count": 114,
+    "model_name": "intfloat/multilingual-e5-small",
+    "collection_name": "seminar_corpus_e5",
+    "vector_dimension": 384,
+    "metric": "cosine",
+    "top_k": 5,
+    "dependencies": {
+      "chromadb": "1.5.9",
+      "sentence_transformers": "6.2.0",
+      "torch": "2.15.0+cpu",
+      "rank_bm25": "0.2.2",
+      "pyvi": "0.1.1",
+      "numpy": "2.5.4"
+    }
+  },
+  "evaluation_summary": {
+    "subset_name": "g3_fixed_test_12",
+    "total_queries": 12,
+    "evaluated_answerable_queries": 11,
+    "unanswerable_queries_excluded_from_macro_avg": 1,
+    "total_verified_labels": 105,
+    "pooled_judgment_limitation_note": "IDCG@5 is computed from the verified candidate pool; this is a pool-bounded evaluation, not an exhaustive corpus-wide relevance judgment."
+  },
+  "macro_averages": {
+    "chroma": {
+      "hit@5": 0.9091,
+      "mrr@5": 0.7909,
+      "ndcg@5": 0.6928
+    },
+    "bm25": {
+      "hit@5": 0.9091,
+      "mrr@5": 0.8182,
+      "ndcg@5": 0.7494
+    }
+  },
+  "per_query_metrics": [
+    {
+      "query_id": "q_002",
+      "query_text": "cách giải quyết khi mô hình học máy thuộc lòng dữ liệu huấn luyện và dự đoán kém trên thực tế",
+      "category": "semantic_paraphrase",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "ml_015",
+          "title": "Hiện tượng Quá khớp và các Biện pháp khắc phục",
+          "distance": 0.1077
+        },
+        {
+          "rank": 2,
+          "doc_id": "dl_018",
+          "title": "Học chuyển giao Transfer Learning và Tinh chỉnh Fine-tuning",
+          "distance": 0.1229
+        },
+        {
+          "rank": 3,
+          "doc_id": "dl_019",
+          "title": "Lượng tử hóa Mô hình Học sâu Model Quantization",
+          "distance": 0.1268
+        },
+        {
+          "rank": 4,
+          "doc_id": "ml_014",
+          "title": "Đánh đổi Độ chệch và Phương sai trong Học máy",
+          "distance": 0.1294
+        },
+        {
+          "rank": 5,
+          "doc_id": "ml_001",
+          "title": "Học có giám sát và Học không giám sát",
+          "distance": 0.1308
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "ml_015",
+          "title": "Hiện tượng Quá khớp và các Biện pháp khắc phục",
+          "score": 9.7838
+        },
+        {
+          "rank": 2,
+          "doc_id": "ml_016",
+          "title": "Kỹ thuật Kiểm định chéo K-Fold",
+          "score": 9.4968
+        },
+        {
+          "rank": 3,
+          "doc_id": "ml_017",
+          "title": "Các chỉ số Đánh giá Phân loại Precision, Recall và F1-Score",
+          "score": 8.3624
+        },
+        {
+          "rank": 4,
+          "doc_id": "ml_014",
+          "title": "Đánh đổi Độ chệch và Phương sai trong Học máy",
+          "score": 7.2382
+        },
+        {
+          "rank": 5,
+          "doc_id": "ml_005",
+          "title": "Điều chuẩn L2 Ridge và Suy giảm trọng số",
+          "score": 7.096
+        }
+      ],
+      "top1_match": true,
+      "chroma": {
+        "top_5_doc_ids": [
+          "ml_015",
+          "dl_018",
+          "dl_019",
+          "ml_014",
+          "ml_001"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          0,
+          1,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.425
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "ml_015",
+          "ml_016",
+          "ml_017",
+          "ml_014",
+          "ml_005"
+        ],
+        "top_5_relevances": [
+          2,
+          1,
+          0,
+          1,
+          2
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.647
+        }
+      }
+    },
+    {
+      "query_id": "q_003",
+      "query_text": "giải pháp tăng tốc độ tìm kiếm bản ghi trong bảng cơ sở dữ liệu hàng triệu dòng",
+      "category": "semantic_paraphrase",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "algo_016",
+          "title": "Quy hoạch Động Dãy con Tăng Dài nhất LIS",
+          "distance": 0.1381
+        },
+        {
+          "rank": 2,
+          "doc_id": "algo_006",
+          "title": "Bảng Băm Hash Table và Xử lý Xung đột",
+          "distance": 0.145
+        },
+        {
+          "rank": 3,
+          "doc_id": "algo_002",
+          "title": "Thuật toán Tìm kiếm Nhị phân Binary Search",
+          "distance": 0.1474
+        },
+        {
+          "rank": 4,
+          "doc_id": "db_012",
+          "title": "Bộ Tối ưu hóa Truy vấn và Kế hoạch Thực thi EXPLAIN",
+          "distance": 0.15
+        },
+        {
+          "rank": 5,
+          "doc_id": "db_004",
+          "title": "Chỉ mục Băm Hash Index và Phạm vi Ứng dụng",
+          "distance": 0.1517
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "db_001",
+          "title": "Mô hình Cơ sở Dữ liệu Quan hệ RDBMS và Chuẩn hóa",
+          "score": 15.0591
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_005",
+          "title": "Khóa chính Primary Key và Khóa ngoại Foreign Key",
+          "score": 11.6387
+        },
+        {
+          "rank": 3,
+          "doc_id": "db_011",
+          "title": "Kiểm soát Đồng thời Đa phiên bản MVCC",
+          "score": 10.2323
+        },
+        {
+          "rank": 4,
+          "doc_id": "db_013",
+          "title": "Cơ sở Dữ liệu Tài liệu NoSQL MongoDB",
+          "score": 9.9908
+        },
+        {
+          "rank": 5,
+          "doc_id": "db_007",
+          "title": "Kỹ thuật Phân mảnh Dữ liệu Sharding",
+          "score": 9.4839
+        }
+      ],
+      "top1_match": false,
+      "chroma": {
+        "top_5_doc_ids": [
+          "algo_016",
+          "algo_006",
+          "algo_002",
+          "db_012",
+          "db_004"
+        ],
+        "top_5_relevances": [
+          0,
+          0,
+          0,
+          1,
+          2
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 0.2,
+          "ndcg@5": 0.2207
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "db_001",
+          "db_005",
+          "db_011",
+          "db_013",
+          "db_007"
+        ],
+        "top_5_relevances": [
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "metrics": {
+          "hit@5": 0.0,
+          "mrr@5": 0.0,
+          "ndcg@5": 0.0537
+        }
+      }
+    },
+    {
+      "query_id": "q_006",
+      "query_text": "cơ chế giúp mô hình dịch máy hiểu được mối liên hệ giữa các từ đứng cách xa nhau trong câu dài",
+      "category": "semantic_paraphrase",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "dl_017",
+          "title": "Mô hình BERT và Biểu diễn Ngôn ngữ Hai chiều",
+          "distance": 0.1445
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_012",
+          "title": "Bộ Tối ưu hóa Truy vấn và Kế hoạch Thực thi EXPLAIN",
+          "distance": 0.1451
+        },
+        {
+          "rank": 3,
+          "doc_id": "dl_015",
+          "title": "Mã hóa Vị trí Positional Encoding trong Transformer",
+          "distance": 0.1462
+        },
+        {
+          "rank": 4,
+          "doc_id": "algo_019",
+          "title": "Thuật toán Khớp Chuỗi Knuth-Morris-Pratt KMP",
+          "distance": 0.1494
+        },
+        {
+          "rank": 5,
+          "doc_id": "dl_016",
+          "title": "Mô hình Tự hồi quy GPT và Sinh Văn bản Tự nhiên",
+          "distance": 0.1544
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "dl_015",
+          "title": "Mã hóa Vị trí Positional Encoding trong Transformer",
+          "score": 12.4457
+        },
+        {
+          "rank": 2,
+          "doc_id": "dl_014",
+          "title": "Kiến trúc Transformer và Chú ý Đa đầu Multi-Head",
+          "score": 10.4276
+        },
+        {
+          "rank": 3,
+          "doc_id": "db_017",
+          "title": "Các Độ đo Khoảng cách Vector Cosine và Euclidean L2",
+          "score": 8.6178
+        },
+        {
+          "rank": 4,
+          "doc_id": "dl_013",
+          "title": "Cơ chế Tự chú ý Self-Attention trong Học sâu",
+          "score": 8.4875
+        },
+        {
+          "rank": 5,
+          "doc_id": "ml_014",
+          "title": "Đánh đổi Độ chệch và Phương sai trong Học máy",
+          "score": 8.3848
+        }
+      ],
+      "top1_match": false,
+      "chroma": {
+        "top_5_doc_ids": [
+          "dl_017",
+          "db_012",
+          "dl_015",
+          "algo_019",
+          "dl_016"
+        ],
+        "top_5_relevances": [
+          1,
+          0,
+          1,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 0.0,
+          "mrr@5": 0.0,
+          "ndcg@5": 0.208
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "dl_015",
+          "dl_014",
+          "db_017",
+          "dl_013",
+          "ml_014"
+        ],
+        "top_5_relevances": [
+          1,
+          2,
+          0,
+          2,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 0.5,
+          "ndcg@5": 0.5804
+        }
+      }
+    },
+    {
+      "query_id": "q_010",
+      "query_text": "kỹ thuật tối ưu bộ nhớ để chạy các mô hình AI ngôn ngữ lớn trên máy tính cá nhân hoặc điện thoại",
+      "category": "semantic_paraphrase",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "dl_016",
+          "title": "Mô hình Tự hồi quy GPT và Sinh Văn bản Tự nhiên",
+          "distance": 0.1358
+        },
+        {
+          "rank": 2,
+          "doc_id": "dl_019",
+          "title": "Lượng tử hóa Mô hình Học sâu Model Quantization",
+          "distance": 0.1514
+        },
+        {
+          "rank": 3,
+          "doc_id": "dl_011",
+          "title": "Kiến trúc Mạng LSTM và Cơ chế Cổng Trạng thái",
+          "distance": 0.1524
+        },
+        {
+          "rank": 4,
+          "doc_id": "cv_016",
+          "title": "Tăng cường Dữ liệu Ảnh Data Augmentation",
+          "distance": 0.1532
+        },
+        {
+          "rank": 5,
+          "doc_id": "algo_017",
+          "title": "Thuật toán Tham lam Greedy và Bài toán Xếp lịch",
+          "distance": 0.1552
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "dl_019",
+          "title": "Lượng tử hóa Mô hình Học sâu Model Quantization",
+          "score": 8.4608
+        },
+        {
+          "rank": 2,
+          "doc_id": "dl_016",
+          "title": "Mô hình Tự hồi quy GPT và Sinh Văn bản Tự nhiên",
+          "score": 7.8021
+        },
+        {
+          "rank": 3,
+          "doc_id": "algo_017",
+          "title": "Thuật toán Tham lam Greedy và Bài toán Xếp lịch",
+          "score": 7.6525
+        },
+        {
+          "rank": 4,
+          "doc_id": "ml_008",
+          "title": "Thuật toán Gradient Boosting và XGBoost",
+          "score": 7.2749
+        },
+        {
+          "rank": 5,
+          "doc_id": "cv_016",
+          "title": "Tăng cường Dữ liệu Ảnh Data Augmentation",
+          "score": 7.0707
+        }
+      ],
+      "top1_match": false,
+      "chroma": {
+        "top_5_doc_ids": [
+          "dl_016",
+          "dl_019",
+          "dl_011",
+          "cv_016",
+          "algo_017"
+        ],
+        "top_5_relevances": [
+          0,
+          2,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 0.5,
+          "ndcg@5": 0.6309
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "dl_019",
+          "dl_016",
+          "algo_017",
+          "ml_008",
+          "cv_016"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 1.0
+        }
+      }
+    },
+    {
+      "query_id": "q_013",
+      "query_text": "thuộc tính ACID và tính bền vững của giao dịch cơ sở dữ liệu quan hệ",
+      "category": "direct_technical",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "db_002",
+          "title": "Thuộc tính ACID trong Giao dịch Cơ sở Dữ liệu",
+          "distance": 0.1214
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_001",
+          "title": "Mô hình Cơ sở Dữ liệu Quan hệ RDBMS và Chuẩn hóa",
+          "distance": 0.1484
+        },
+        {
+          "rank": 3,
+          "doc_id": "db_008",
+          "title": "Các Mức độ Cô lập Giao dịch Transaction Isolation Levels",
+          "distance": 0.1505
+        },
+        {
+          "rank": 4,
+          "doc_id": "db_011",
+          "title": "Kiểm soát Đồng thời Đa phiên bản MVCC",
+          "distance": 0.1683
+        },
+        {
+          "rank": 5,
+          "doc_id": "ml_002",
+          "title": "Hồi quy tuyến tính và Hàm mất mát MSE",
+          "distance": 0.1691
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "db_002",
+          "title": "Thuộc tính ACID trong Giao dịch Cơ sở Dữ liệu",
+          "score": 17.4381
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_001",
+          "title": "Mô hình Cơ sở Dữ liệu Quan hệ RDBMS và Chuẩn hóa",
+          "score": 11.5971
+        },
+        {
+          "rank": 3,
+          "doc_id": "db_008",
+          "title": "Các Mức độ Cô lập Giao dịch Transaction Isolation Levels",
+          "score": 9.0244
+        },
+        {
+          "rank": 4,
+          "doc_id": "db_007",
+          "title": "Kỹ thuật Phân mảnh Dữ liệu Sharding",
+          "score": 8.8394
+        },
+        {
+          "rank": 5,
+          "doc_id": "db_018",
+          "title": "Nhật ký Ghi trước WAL Write-Ahead Logging",
+          "score": 7.8409
+        }
+      ],
+      "top1_match": true,
+      "chroma": {
+        "top_5_doc_ids": [
+          "db_002",
+          "db_001",
+          "db_008",
+          "db_011",
+          "ml_002"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          1,
+          1,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.675
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "db_002",
+          "db_001",
+          "db_008",
+          "db_007",
+          "db_018"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          1,
+          0,
+          2
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.8003
+        }
+      }
+    },
+    {
+      "query_id": "q_016",
+      "query_text": "cơ sở dữ liệu vector và thuật toán tìm kiếm láng giềng gần đúng HNSW",
+      "category": "direct_technical",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "db_016",
+          "title": "Thuật toán Chỉ mục Vector HNSW",
+          "distance": 0.0845
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_015",
+          "title": "Cơ sở Dữ liệu Vector Vector Database và Ứng dụng Semantic Search",
+          "distance": 0.1023
+        },
+        {
+          "rank": 3,
+          "doc_id": "ml_009",
+          "title": "Máy vector hỗ trợ SVM và Kernel Trick",
+          "distance": 0.1418
+        },
+        {
+          "rank": 4,
+          "doc_id": "ml_010",
+          "title": "Thuật toán K-Nearest Neighbors và Độ đo khoảng cách",
+          "distance": 0.1439
+        },
+        {
+          "rank": 5,
+          "doc_id": "db_017",
+          "title": "Các Độ đo Khoảng cách Vector Cosine và Euclidean L2",
+          "distance": 0.1508
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "db_016",
+          "title": "Thuật toán Chỉ mục Vector HNSW",
+          "score": 21.438
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_015",
+          "title": "Cơ sở Dữ liệu Vector Vector Database và Ứng dụng Semantic Search",
+          "score": 16.9571
+        },
+        {
+          "rank": 3,
+          "doc_id": "db_017",
+          "title": "Các Độ đo Khoảng cách Vector Cosine và Euclidean L2",
+          "score": 7.9745
+        },
+        {
+          "rank": 4,
+          "doc_id": "ml_009",
+          "title": "Máy vector hỗ trợ SVM và Kernel Trick",
+          "score": 6.8444
+        },
+        {
+          "rank": 5,
+          "doc_id": "db_002",
+          "title": "Thuộc tính ACID trong Giao dịch Cơ sở Dữ liệu",
+          "score": 6.2129
+        }
+      ],
+      "top1_match": true,
+      "chroma": {
+        "top_5_doc_ids": [
+          "db_016",
+          "db_015",
+          "ml_009",
+          "ml_010",
+          "db_017"
+        ],
+        "top_5_relevances": [
+          2,
+          2,
+          0,
+          1,
+          1
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.9806
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "db_016",
+          "db_015",
+          "db_017",
+          "ml_009",
+          "db_002"
+        ],
+        "top_5_relevances": [
+          2,
+          2,
+          1,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.926
+        }
+      }
+    },
+    {
+      "query_id": "q_020",
+      "query_text": "phân biệt bài toán phân đoạn ngữ nghĩa và phân đoạn cá thể trong thị giác máy tính",
+      "category": "ambiguous_confusable",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "cv_014",
+          "title": "Phân đoạn Cá thể Instance Segmentation và Mask R-CNN",
+          "distance": 0.1146
+        },
+        {
+          "rank": 2,
+          "doc_id": "cv_013",
+          "title": "Phân đoạn Ngữ nghĩa Semantic Segmentation",
+          "distance": 0.1163
+        },
+        {
+          "rank": 3,
+          "doc_id": "cv_009",
+          "title": "Bài toán Phân loại Ảnh Image Classification",
+          "distance": 0.1355
+        },
+        {
+          "rank": 4,
+          "doc_id": "cv_018",
+          "title": "Trích xuất Đặc trưng Truyền thống SIFT và HOG",
+          "distance": 0.1467
+        },
+        {
+          "rank": 5,
+          "doc_id": "ml_001",
+          "title": "Học có giám sát và Học không giám sát",
+          "distance": 0.1469
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "cv_014",
+          "title": "Phân đoạn Cá thể Instance Segmentation và Mask R-CNN",
+          "score": 24.8454
+        },
+        {
+          "rank": 2,
+          "doc_id": "cv_013",
+          "title": "Phân đoạn Ngữ nghĩa Semantic Segmentation",
+          "score": 20.4581
+        },
+        {
+          "rank": 3,
+          "doc_id": "cv_018",
+          "title": "Trích xuất Đặc trưng Truyền thống SIFT và HOG",
+          "score": 9.508
+        },
+        {
+          "rank": 4,
+          "doc_id": "cv_015",
+          "title": "Kiến trúc U-Net trong Phân đoạn Ảnh Y tế",
+          "score": 9.4582
+        },
+        {
+          "rank": 5,
+          "doc_id": "cv_016",
+          "title": "Tăng cường Dữ liệu Ảnh Data Augmentation",
+          "score": 8.3918
+        }
+      ],
+      "top1_match": true,
+      "chroma": {
+        "top_5_doc_ids": [
+          "cv_014",
+          "cv_013",
+          "cv_009",
+          "cv_018",
+          "ml_001"
+        ],
+        "top_5_relevances": [
+          2,
+          2,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.9073
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "cv_014",
+          "cv_013",
+          "cv_018",
+          "cv_015",
+          "cv_016"
+        ],
+        "top_5_relevances": [
+          2,
+          2,
+          0,
+          1,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.9871
+        }
+      }
+    },
+    {
+      "query_id": "q_021",
+      "query_text": "so sánh giao thức truyền tải TCP và UDP trong mạng máy tính",
+      "category": "ambiguous_confusable",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "net_004",
+          "title": "Giao thức UDP Truyền tin Không Kết nối",
+          "distance": 0.105
+        },
+        {
+          "rank": 2,
+          "doc_id": "net_002",
+          "title": "Giao thức TCP và Bắt tay Ba bước Three-way Handshake",
+          "distance": 0.1394
+        },
+        {
+          "rank": 3,
+          "doc_id": "net_001",
+          "title": "Mô hình Tham chiếu OSI 7 Tầng và Bộ Giao thức TCP/IP",
+          "distance": 0.1471
+        },
+        {
+          "rank": 4,
+          "doc_id": "net_006",
+          "title": "Cải tiến của Giao thức HTTP/2 và HTTP/3 QUIC",
+          "distance": 0.1551
+        },
+        {
+          "rank": 5,
+          "doc_id": "net_005",
+          "title": "Giao thức HTTP và Mã hóa Bảo mật HTTPS",
+          "distance": 0.1602
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "net_006",
+          "title": "Cải tiến của Giao thức HTTP/2 và HTTP/3 QUIC",
+          "score": 12.8462
+        },
+        {
+          "rank": 2,
+          "doc_id": "net_004",
+          "title": "Giao thức UDP Truyền tin Không Kết nối",
+          "score": 12.7743
+        },
+        {
+          "rank": 3,
+          "doc_id": "net_001",
+          "title": "Mô hình Tham chiếu OSI 7 Tầng và Bộ Giao thức TCP/IP",
+          "score": 10.6485
+        },
+        {
+          "rank": 4,
+          "doc_id": "net_005",
+          "title": "Giao thức HTTP và Mã hóa Bảo mật HTTPS",
+          "score": 9.7782
+        },
+        {
+          "rank": 5,
+          "doc_id": "net_002",
+          "title": "Giao thức TCP và Bắt tay Ba bước Three-way Handshake",
+          "score": 9.305
+        }
+      ],
+      "top1_match": false,
+      "chroma": {
+        "top_5_doc_ids": [
+          "net_004",
+          "net_002",
+          "net_001",
+          "net_006",
+          "net_005"
+        ],
+        "top_5_relevances": [
+          2,
+          2,
+          0,
+          1,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.9141
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "net_006",
+          "net_004",
+          "net_001",
+          "net_005",
+          "net_002"
+        ],
+        "top_5_relevances": [
+          1,
+          2,
+          0,
+          0,
+          2
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 0.5,
+          "ndcg@5": 0.696
+        }
+      }
+    },
+    {
+      "query_id": "q_024",
+      "query_text": "so sánh mã hóa đối xứng AES và mã hóa bất đối xứng RSA",
+      "category": "ambiguous_confusable",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "net_015",
+          "title": "Mã hóa Đối xứng AES và Mã hóa Bất đối xứng RSA",
+          "distance": 0.0878
+        },
+        {
+          "rank": 2,
+          "doc_id": "ml_017",
+          "title": "Các chỉ số Đánh giá Phân loại Precision, Recall và F1-Score",
+          "distance": 0.1614
+        },
+        {
+          "rank": 3,
+          "doc_id": "db_004",
+          "title": "Chỉ mục Băm Hash Index và Phạm vi Ứng dụng",
+          "distance": 0.162
+        },
+        {
+          "rank": 4,
+          "doc_id": "ml_014",
+          "title": "Đánh đổi Độ chệch và Phương sai trong Học máy",
+          "distance": 0.1686
+        },
+        {
+          "rank": 5,
+          "doc_id": "net_016",
+          "title": "Quy trình Bắt tay TLS Handshake và Chứng chỉ Số",
+          "distance": 0.1719
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "net_015",
+          "title": "Mã hóa Đối xứng AES và Mã hóa Bất đối xứng RSA",
+          "score": 38.5982
+        },
+        {
+          "rank": 2,
+          "doc_id": "net_016",
+          "title": "Quy trình Bắt tay TLS Handshake và Chứng chỉ Số",
+          "score": 16.4929
+        },
+        {
+          "rank": 3,
+          "doc_id": "cv_015",
+          "title": "Kiến trúc U-Net trong Phân đoạn Ảnh Y tế",
+          "score": 12.623
+        },
+        {
+          "rank": 4,
+          "doc_id": "net_018",
+          "title": "Mạng Riêng Ảo VPN và Cơ chế Đường hầm",
+          "score": 6.1068
+        },
+        {
+          "rank": 5,
+          "doc_id": "net_019",
+          "title": "Kiến trúc An ninh Zero Trust trong Hạ tầng Doanh nghiệp",
+          "score": 6.0827
+        }
+      ],
+      "top1_match": true,
+      "chroma": {
+        "top_5_doc_ids": [
+          "net_015",
+          "ml_017",
+          "db_004",
+          "ml_014",
+          "net_016"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          0,
+          0,
+          1
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.9328
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "net_015",
+          "net_016",
+          "cv_015",
+          "net_018",
+          "net_019"
+        ],
+        "top_5_relevances": [
+          2,
+          1,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 1.0
+        }
+      }
+    },
+    {
+      "query_id": "q_026",
+      "query_text": "chỉ số IoU và thuật toán Non-Maximum Suppression NMS",
+      "category": "exact_match",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "cv_012",
+          "title": "Độ đo IoU và Thuật toán Triệt tiêu Không Cực đại NMS",
+          "distance": 0.1008
+        },
+        {
+          "rank": 2,
+          "doc_id": "algo_013",
+          "title": "Thuật toán Kruskal và Cấu trúc Tập rời rạc DSU",
+          "distance": 0.1497
+        },
+        {
+          "rank": 3,
+          "doc_id": "ml_011",
+          "title": "Phân cụm K-Means và Phương pháp Elbow",
+          "distance": 0.1553
+        },
+        {
+          "rank": 4,
+          "doc_id": "net_007",
+          "title": "Hệ thống Phân giải Tên miền DNS và Phân cấp Truy vấn",
+          "distance": 0.156
+        },
+        {
+          "rank": 5,
+          "doc_id": "ml_002",
+          "title": "Hồi quy tuyến tính và Hàm mất mát MSE",
+          "distance": 0.158
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "cv_012",
+          "title": "Độ đo IoU và Thuật toán Triệt tiêu Không Cực đại NMS",
+          "score": 20.8539
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_009",
+          "title": "Hiện tượng Đọc Rác và Đọc Không Lặp lại",
+          "score": 5.0425
+        },
+        {
+          "rank": 3,
+          "doc_id": "ml_006",
+          "title": "Cây quyết định và Độ vẩn đục Gini",
+          "score": 4.9891
+        },
+        {
+          "rank": 4,
+          "doc_id": "ml_017",
+          "title": "Các chỉ số Đánh giá Phân loại Precision, Recall và F1-Score",
+          "score": 4.4222
+        },
+        {
+          "rank": 5,
+          "doc_id": "algo_006",
+          "title": "Bảng Băm Hash Table và Xử lý Xung đột",
+          "score": 4.2959
+        }
+      ],
+      "top1_match": true,
+      "chroma": {
+        "top_5_doc_ids": [
+          "cv_012",
+          "algo_013",
+          "ml_011",
+          "net_007",
+          "ml_002"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.7262
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "cv_012",
+          "db_009",
+          "ml_006",
+          "ml_017",
+          "algo_006"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.7262
+        }
+      }
+    },
+    {
+      "query_id": "q_028",
+      "query_text": "cơ chế MVCC Multi-Version Concurrency Control PostgreSQL",
+      "category": "exact_match",
+      "is_unanswerable": false,
+      "chroma_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "db_011",
+          "title": "Kiểm soát Đồng thời Đa phiên bản MVCC",
+          "distance": 0.0659
+        },
+        {
+          "rank": 2,
+          "doc_id": "db_008",
+          "title": "Các Mức độ Cô lập Giao dịch Transaction Isolation Levels",
+          "distance": 0.1398
+        },
+        {
+          "rank": 3,
+          "doc_id": "dl_014",
+          "title": "Kiến trúc Transformer và Chú ý Đa đầu Multi-Head",
+          "distance": 0.1515
+        },
+        {
+          "rank": 4,
+          "doc_id": "dl_013",
+          "title": "Cơ chế Tự chú ý Self-Attention trong Học sâu",
+          "distance": 0.1516
+        },
+        {
+          "rank": 5,
+          "doc_id": "db_019",
+          "title": "Quản lý Bể Kết nối Connection Pooling",
+          "distance": 0.1539
+        }
+      ],
+      "bm25_top_k": [
+        {
+          "rank": 1,
+          "doc_id": "db_011",
+          "title": "Kiểm soát Đồng thời Đa phiên bản MVCC",
+          "score": 13.202
+        },
+        {
+          "rank": 2,
+          "doc_id": "dl_014",
+          "title": "Kiến trúc Transformer và Chú ý Đa đầu Multi-Head",
+          "score": 6.0626
+        },
+        {
+          "rank": 3,
+          "doc_id": "db_010",
+          "title": "Khóa Bi quan và Khóa Lạc quan trong Quản trị Đồng thời",
+          "score": 3.8543
+        },
+        {
+          "rank": 4,
+          "doc_id": "dl_008",
+          "title": "Kỹ thuật Chuẩn hóa Batch Normalization",
+          "score": 2.2158
+        },
+        {
+          "rank": 5,
+          "doc_id": "dl_016",
+          "title": "Mô hình Tự hồi quy GPT và Sinh Văn bản Tự nhiên",
+          "score": 2.1723
+        }
+      ],
+      "top1_match": true,
+      "chroma": {
+        "top_5_doc_ids": [
+          "db_011",
+          "db_008",
+          "dl_014",
+          "dl_013",
+          "db_019"
+        ],
+        "top_5_relevances": [
+          2,
+          1,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 1.0
+        }
+      },
+      "bm25": {
+        "top_5_doc_ids": [
+          "db_011",
+          "dl_014",
+          "db_010",
+          "dl_008",
+          "dl_016"
+        ],
+        "top_5_relevances": [
+          2,
+          0,
+          0,
+          0,
+          0
+        ],
+        "metrics": {
+          "hit@5": 1.0,
+          "mrr@5": 1.0,
+          "ndcg@5": 0.8262
+        }
+      }
+    }
+  ],
+  "unanswerable_query_analysis": {
+    "query_id": "q_030",
+    "query_text": "thuật toán đồng thuận Proof of Stake và xử lý phân nhánh blockchain Ethereum",
+    "chroma_top_1": {
+      "rank": 1,
+      "doc_id": "algo_014",
+      "title": "Thuật toán Prim Tìm Cây khung Nhỏ nhất",
+      "distance": 0.1513
+    },
+    "bm25_top_1": {
+      "rank": 1,
+      "doc_id": "ml_001",
+      "title": "Học có giám sát và Học không giám sát",
+      "score": 9.0677
+    },
+    "note": "Unanswerable query has no relevant answers in corpus. Both retrievers return nearest candidates without abstaining; excluded from macro-average metrics to avoid distorting retrieval performance."
+  }
+}

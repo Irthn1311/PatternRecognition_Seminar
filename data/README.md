@@ -165,11 +165,12 @@ Cấu trúc bảng (UTF-8 with BOM):
 - `bm25_rank`: Thứ hạng Top-5 từ BM25 (nếu có)
 - `proposed_relevance`: Nhãn dự thảo ban đầu (0/1/2 hoặc trống nếu chưa đánh giá)
 - `proposed_note`: Ghi chú từ nhãn dự thảo
-- `verified_relevance`: **Để trống hoàn toàn** cho người kiểm duyệt điền {0, 1, 2}
-- `review_status`: Khởi tạo mặc định là `pending` (tuyệt đối không tự động chuyển `verified`)
+- `verified_relevance`: Điểm số tương quan do người kiểm duyệt thẩm định và xác nhận {0, 1, 2}
+- `review_status`: Trạng thái kiểm duyệt (đã hoàn thành thẩm định 105/105 cặp sang `verified`)
 
-### 5.3 Cơ chế Verified-Label Gate
+### 5.3 Cơ chế Verified-Label Gate & Benchmark Chính Thức (Task G6)
 Để xuất báo cáo benchmark chính thức (`python scripts/run_evaluation.py --official`), hệ thống yêu cầu:
 - Toàn bộ các dòng trong pool của các câu hỏi được đánh giá phải có `verified_relevance` thuộc `{0, 1, 2}` và `review_status == 'verified'`.
-- Nếu còn bất kỳ nhãn nào ở trạng thái `pending`, hệ thống sẽ **từ chối xuất kết quả official** và báo rõ số nhãn còn thiếu, ngăn chặn việc sử dụng nhãn AI chưa kiểm chứng làm ground truth khoa học.
+- Kiểm tra mã băm SHA-256 đối soát đồng thời cả `corpus_sha256` và `review_pool_sha256` để loại trừ hoàn toàn dữ liệu lỗi thời.
 - Câu hỏi unanswerable (`q_030`) được phân tích định tính riêng biệt, không đưa vào trung bình của các câu hỏi answerable.
+- **Trạng thái hiện tại (Task G6):** Toàn bộ 105 cặp ứng viên đã được người kiểm duyệt hoàn tất thẩm định (22 nhãn 2, 18 nhãn 1, 65 nhãn 0), cổng gate mở thành công và lưu kết quả tại `results/g3/official_metrics.json`.

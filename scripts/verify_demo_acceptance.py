@@ -173,9 +173,10 @@ def run_acceptance_checks() -> None:
     )
     print(f"  Official benchmark eligibility: {is_eligible}")
     print(f"  Gate reason: \"{reason}\"")
-    assert not is_eligible, "Official benchmark should be INELIGIBLE when 105 labels are pending!"
-    assert official_data is None, "Official data should not be loaded when pending"
-    print("Check 4 PASS: Experiment tab displays preview and correctly locks official benchmark.")
+    assert is_eligible, f"Official benchmark should be ELIGIBLE when 105 labels are verified! Reason: {reason}"
+    assert official_data is not None, "Official data should be loaded when verified"
+    assert "macro_averages" in official_data, "Official data missing macro_averages"
+    print("Check 4 PASS: Experiment tab successfully verifies official benchmark eligibility and displays official metrics.")
 
     print("\n" + "=" * 80)
     print("ALL 4 DEMO ACCEPTANCE CHECKS PASSED SUCCESSFULLY (PASS)")
